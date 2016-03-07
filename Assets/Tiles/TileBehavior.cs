@@ -1,10 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.EventSystems;
 
-public class TileBehavior : MonoBehaviour 
+public class TileBehavior : MonoBehaviour, IPointerClickHandler
 {
     //Set through Unity
+    public GameObject Background;
     public GameObject Static;
+
+    public Color HighlightColor;
     //
 
     public Tile Tile
@@ -20,7 +24,7 @@ public class TileBehavior : MonoBehaviour
     }
 
     private Character charOnTile;
-    public Character OnTile
+    public Character Character
     {
         get
         {
@@ -32,11 +36,32 @@ public class TileBehavior : MonoBehaviour
             if (value != null)
             {
                 value.transform.SetParent(this.transform);
+                value.transform.localPosition = Vector3.zero;
                 this.Static.SetActive(false);
             }
             else
             {
                 this.Static.SetActive(true);
+            }
+        }
+    }
+
+    public bool IsHighlighted
+    {
+        get
+        {
+            return this.Background.GetComponent<SpriteRenderer>().color == this.HighlightColor;
+        }
+        set
+        {
+            var sprite = this.Background.GetComponent<SpriteRenderer>();
+            if (value)
+            {
+                sprite.color = this.HighlightColor;
+            }
+            else
+            {
+                sprite.color = Color.black;
             }
         }
     }
@@ -48,7 +73,14 @@ public class TileBehavior : MonoBehaviour
         StartCoroutine( this.DoLight() );
     }
 
+    #region IPointerClickHandler implementation
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        LevelMng.Instance.TileClicked(this);
+    }
+
+    #endregion
 
     IEnumerator DoLight()
     {
@@ -56,11 +88,11 @@ public class TileBehavior : MonoBehaviour
         Color color = new Color(255, 55, 0);
         if (this.Tile.Type == TileType.Wall)
         {
-            sprite = transform.FindChild("Background").GetComponent<SpriteRenderer>();
+            sprite = this.Background.GetComponent<SpriteRenderer>();
         }
         else if (this.Tile.Type == TileType.Ground)
         {
-            sprite = transform.FindChild("Static").GetComponent<SpriteRenderer>();
+            sprite = this.Static.GetComponent<SpriteRenderer>();
             color = Color.white;
         }
 
@@ -72,9 +104,12 @@ public class TileBehavior : MonoBehaviour
         var wait = new WaitForSeconds(0.25f);
         while (true)
         {
-            v = Mathf.Lerp(0, 1, this.LightLevel);
-            
-            sprite.color = ColorManipulator.ColorFromHSV(h, s, v);
+            if (!this.IsHighlighted)
+            {
+                v = Mathf.Lerp(0, 1, this.LightLevel);
+                
+                sprite.color = ColorManipulator.ColorFromHSV(h, s, v);
+            }
 
             yield return wait;
         }

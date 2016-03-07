@@ -17,16 +17,18 @@ namespace RogueLib
 
         IEnumerator LightSurroundings()
         {
-            var thisTileBhv = this.GetComponent<TileBehavior>();
-            if (thisTileBhv == null)
-            {
-                thisTileBhv = this.transform.parent.GetComponent<TileBehavior>();
-            }
-            Point lightPos = thisTileBhv.Pos;
+
             var wait = new WaitForSeconds(0.1f);
 
             while (true)
             {
+                var thisTileBhv = this.GetComponent<TileBehavior>();
+                if (thisTileBhv == null)
+                {
+                    thisTileBhv = this.transform.parent.GetComponent<TileBehavior>();
+                }
+                Point lightPos = thisTileBhv.Pos;
+
                 thisTileBhv.LightLevel = 1f;
 
                 for (int range = 1; range <= this.Range; range++)

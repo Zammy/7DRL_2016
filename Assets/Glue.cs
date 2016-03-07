@@ -8,6 +8,8 @@ public class Glue : MonoBehaviour
     public Camera MainCamera;
     public GameObject PlayerPrefab;
 
+    public RadialActionMenu ActionMenu;
+
 	void Start () 
     {
         var lvlGen = new BSPGenerator();
@@ -28,7 +30,9 @@ public class Glue : MonoBehaviour
 
         var playerGo = (GameObject)Instantiate(this.PlayerPrefab);
         this.MainCamera.transform.SetParent(playerGo.transform);
-        this.LeveMng.AddCharacterOnPos(playerGo.GetComponent<Character>(), dungeon.PlayerStartPos);
+        var player = playerGo.GetComponent<Player>();
+        this.LeveMng.AddCharacterOnPos(player as Character, dungeon.PlayerStartPos);
         playerGo.transform.localPosition = Vector3.zero;
+        player.ActionMenu = this.ActionMenu;
 	}
 }

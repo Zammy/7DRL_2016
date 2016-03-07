@@ -5,20 +5,37 @@ using RogueLib;
 
 public class ActionExecutor : MonoBehaviour 
 {
-    public static ActionExecutor Instance;
+//    public static ActionExecutor Instance;
 
 //    public Map Map;
 
 //    public Announcements Announcements;
 
-    void Awake()
-    {
-        Instance = this;
-    }
+//    void Awake()
+//    {
+//        Instance = this;
+//    }
+
+    //Set through Unity
+    public ActionExecutorList ActionExecutorList;
+    //
 
     List<GameAction> actions = new List<GameAction>();
 
     bool isExecutingActions = false;
+
+    public void QueueAction(Character character, GameActionData gameActionData, TileBehavior target)
+    {
+        GameAction gameAction = SpawnGameAction(character, gameActionData, target);
+        this.ActionExecutorList.AddAction(gameAction);
+        this.actions.Add(gameAction);
+    }
+
+    public void CancelAction(GameAction gameAction)
+    {
+        gameAction.Character.ActionExecuted = null;
+        this.actions.Remove(gameAction);
+    }
 
     public void Play()
     {
@@ -96,33 +113,35 @@ public class ActionExecutor : MonoBehaviour
         this.isExecutingActions = false;
     }
 
-//    GameAction SpawnGameAction(Tile target)
-//    {
-//        var moveActionData = this.focusedAction as MoveGameActionData;
-//        if (moveActionData != null)
-//        {
-//            return new MoveGameAction(moveActionData, this.focusedCharacter, this.focusedRange.From, target);
-//        }
-//
-//        var rechargeActionData = this.focusedAction as RechargeGameActionData;
-//        if (rechargeActionData != null)
-//        {
-//            return new RechargeGameAction(rechargeActionData, this.focusedCharacter, target);
-//        }
-//
-//        var attackActionData = this.focusedAction as AttackGameActionData;
-//        if (attackActionData != null)
-//        {
-//            return new AttackGameAction(attackActionData, this.focusedCharacter, target);
-//        }
-//
-//        var defendActionData = this.focusedAction as DefendGameActionData;
-//        if (defendActionData != null)
-//        {
-//            return new DefendGameAction(defendActionData, this.focusedCharacter, target);
-//        }
-//        return null;
-//    }
+    GameAction SpawnGameAction(Character character, GameActionData actionData, TileBehavior target)
+    {
+        var moveActionData = actionData as MoveGameActionData;
+        if (moveActionData != null)
+        {
+            var charPos = LevelMng.Instance.GetPosOfCharacter(character);
+            var fromTile = LevelMng.Instance.GetTileBehavior(charPos);
+            return new MoveGameAction(moveActionData, character, fromTile, target);
+        }
+
+        var rechargeActionData = actionData as RechargeGameActionData;
+        if (rechargeActionData != null)
+        {
+            return new RechargeGameAction(rechargeActionData, character, target);
+        }
+
+        var attackActionData = actionData as AttackGameActionData;
+        if (attackActionData != null)
+        {
+            return new AttackGameAction(attackActionData, character, target);
+        }
+
+        var defendActionData = actionData as DefendGameActionData;
+        if (defendActionData != null)
+        {
+            return new DefendGameAction(defendActionData, character, target);
+        }
+        return null;
+    }
 }
 
 public abstract class GameAction
@@ -178,6 +197,8 @@ public class MoveGameAction : GameAction
         base.Start();
         var difference = this.Target.transform.position - this.From.transform.position;
         this.movePerTick = difference / (float)this.TimeLeft;
+
+        this.From.Character = null;
     }
 
     public override bool Tick()
@@ -187,8 +208,7 @@ public class MoveGameAction : GameAction
         bool arrived = base.Tick();
         if (arrived)
         {
-            this.Character.transform.SetParent(this.Target.transform);
-            this.Character.transform.localPosition = Vector3.zero;
+            this.Target.Character = this.Character;
         }
         return arrived;
     }
