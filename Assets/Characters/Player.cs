@@ -39,6 +39,11 @@ public class Player : Character, IPointerClickHandler
         }
     }
 
+    public bool HasEnemiesInSight()
+    {
+        return false;
+    }
+
     #region IPointerClickHandler implementation
 
     public void OnPointerClick(PointerEventData eventData)

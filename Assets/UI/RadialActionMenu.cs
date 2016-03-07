@@ -9,6 +9,7 @@ public class RadialActionMenu : MonoBehaviour
     public Overlay Overlay;
     public GameObject ActionOptPrefab;
     public ActionDataDisplay SelectedAction;
+    public InputManager InputManager;
 
     public GameObject MoveActionList;
     public GameObject AttackActionList;
@@ -41,7 +42,7 @@ public class RadialActionMenu : MonoBehaviour
                 this.SelectedAction.gameObject.SetActive(false);
             }
 
-            LevelMng.Instance.ClearHighlightedTiles();
+            this.InputManager.ClearHighlightedTiles();
         }
     }
 
@@ -77,7 +78,7 @@ public class RadialActionMenu : MonoBehaviour
 
         actionOpt.IsHighlighted = false;
 
-        LevelMng.Instance.SetSelectedAction(actionOpt.GameActionData);
+        this.InputManager.SetSelectedAction(actionOpt.GameActionData);
     }
 
     ActionDataOption InstantiateActionOption(Transform parent)

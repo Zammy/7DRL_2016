@@ -21,13 +21,10 @@ public class LevelMng : MonoBehaviour
     public float TileSize;
 
     public Transform Level;
-    public ActionExecutor ActionExecutor;
+    public InputManager InputManager;
     //
 
     private TileBehavior[,] level;
-
-    List<Character> characters = new List<Character>();
-    Player player;
 
     void Awake()
     {
@@ -41,58 +38,60 @@ public class LevelMng : MonoBehaviour
 
     public void AddCharacterOnPos(Character character, Point pos)
     {
-        if (character is Player)
-        {
-            this.player = character as Player;
-        }
         this.level[pos.X, pos.Y].Character = character;
-        this.characters.Add(character);
     }
 
-    #region Input
-
-    List<TileBehavior> highlightedTiles = new List<TileBehavior>();
-    GameActionData selectedAction;
-
-    public void TileClicked(TileBehavior tileClicked)
+    void AddTilesTo(Tile[,] tiles, Transform parent)
     {
-        if (!highlightedTiles.Contains(tileClicked))
+        this.level = new TileBehavior[tiles.GetLength(0), tiles.GetLength(1)];
+
+        for (int x = 0; x < tiles.GetLength(0); x++)
         {
-            //todo add sound? or flash highlights
-            return;
+            for (int y = 0; y < tiles.GetLength(1); y++)
+            {
+                Vector2 pos = new Vector2(TileSize * x, TileSize * y);
+                var tile = tiles[x, y];
+
+                if (tile == null)
+                    continue;
+                   
+                GameObject prefabToUse = null;
+                switch (tile.Type)
+                {
+                    case TileType.Ground:
+                    {
+                        prefabToUse = this.GroundPrefab;
+                        break;
+                    }
+                    case TileType.Wall:
+                    {
+                        prefabToUse = this.WallPrefab;
+                        break;
+                    }
+//                        case TileType.Start:
+//                        {
+//                            prefabToUse = this.StartPrefab;
+//                            break;
+//                        }
+//                        case TileType.End:
+//                        {
+//                            prefabToUse = this.EndPrefab;
+//                            break;
+//                        }
+                    default:
+                        break;
+                }
+                var tileGo = (GameObject)Instantiate(prefabToUse, pos, Quaternion.identity);
+                tileGo.transform.SetParent(parent);
+
+                var behavior = tileGo.GetComponent<TileBehavior>();
+                behavior.Tile = tile;
+                behavior.Pos = new Point(x, y);
+                behavior.Clicked += this.InputManager.TileClicked;
+                this.level[x, y] = behavior;
+            }
         }
-
-        this.ClearHighlightedTiles();
-
-        player.ActionMenu.IsVisible = false;
-
-        this.ActionExecutor.QueueAction( this.player, this.selectedAction, tileClicked );
     }
-
-    public void SetSelectedAction(GameActionData actionData)
-    {
-        this.selectedAction = actionData;
-
-        int range = actionData.Range;
-        Point playerPos = this.GetPosOfCharacter(this.player);
-        TileBehavior[] tilesInRange = this.TilesAroundInRange(playerPos, range);
-        foreach (var tile in tilesInRange)
-        {
-            tile.IsHighlighted = true;
-        }
-        this.highlightedTiles.AddRange(tilesInRange);
-    }
-
-    public void ClearHighlightedTiles()
-    {
-        foreach (var tile in highlightedTiles)
-        {
-            tile.IsHighlighted = false;
-        }
-        this.highlightedTiles.Clear();
-    }
-
-    #endregion
 
     #region Map Queries
     public TileBehavior GetTileBehavior(Point pos)
@@ -149,57 +148,6 @@ public class LevelMng : MonoBehaviour
         return tileBhv.Pos;
     }
     #endregion
-
-    void AddTilesTo(Tile[,] tiles, Transform parent)
-    {
-        this.level = new TileBehavior[tiles.GetLength(0), tiles.GetLength(1)];
-
-        for (int x = 0; x < tiles.GetLength(0); x++)
-        {
-            for (int y = 0; y < tiles.GetLength(1); y++)
-            {
-                Vector2 pos = new Vector2(TileSize * x, TileSize * y);
-                var tile = tiles[x, y];
-
-                if (tile == null)
-                    continue;
-                   
-                GameObject prefabToUse = null;
-                switch (tile.Type)
-                {
-                    case TileType.Ground:
-                    {
-                        prefabToUse = this.GroundPrefab;
-                        break;
-                    }
-                    case TileType.Wall:
-                    {
-                        prefabToUse = this.WallPrefab;
-                        break;
-                    }
-//                        case TileType.Start:
-//                        {
-//                            prefabToUse = this.StartPrefab;
-//                            break;
-//                        }
-//                        case TileType.End:
-//                        {
-//                            prefabToUse = this.EndPrefab;
-//                            break;
-//                        }
-                    default:
-                        break;
-                }
-                var tileGo = (GameObject)Instantiate(prefabToUse, pos, Quaternion.identity);
-                tileGo.transform.SetParent(parent);
-
-                var behavior = tileGo.GetComponent<TileBehavior>();
-                behavior.Tile = tile;
-                behavior.Pos = new Point(x, y);
-                this.level[x, y] = behavior;
-            }
-        }
-    }
 
     #region Path Finder
 
@@ -370,12 +318,11 @@ public class LevelMng : MonoBehaviour
     Point[] ExtractPath(Step step)
     {
         List<Point> path = new List<Point>();
-        step = step.Parent;
         do
         {
             path.Add(step.Pos);
             step = step.Parent;
-        } 
+        }
         while(step.Parent != null);
 
         path.Reverse();

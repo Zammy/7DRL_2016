@@ -12,14 +12,6 @@ public class ActionExecutorList : MonoBehaviour
     //
    
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            this.PlayClicked();
-        }
-    }
-
 	public void AddAction(GameAction gameAction)
     {
         var displayGo = Instantiate(this.GameActionDisplayPrefab);

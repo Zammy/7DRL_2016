@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using System;
 
 public class TileBehavior : MonoBehaviour, IPointerClickHandler
 {
@@ -10,6 +11,8 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler
 
     public Color HighlightColor;
     //
+
+    public Action<TileBehavior> Clicked;
 
     public Tile Tile
     {
@@ -77,7 +80,7 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        LevelMng.Instance.TileClicked(this);
+        this.Clicked(this);
     }
 
     #endregion

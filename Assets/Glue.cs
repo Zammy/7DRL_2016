@@ -9,6 +9,7 @@ public class Glue : MonoBehaviour
     public GameObject PlayerPrefab;
 
     public RadialActionMenu ActionMenu;
+    public InputManager InputManager;
 
 	void Start () 
     {
@@ -34,5 +35,7 @@ public class Glue : MonoBehaviour
         this.LeveMng.AddCharacterOnPos(player as Character, dungeon.PlayerStartPos);
         playerGo.transform.localPosition = Vector3.zero;
         player.ActionMenu = this.ActionMenu;
+
+        this.InputManager.Player = player;
 	}
 }
