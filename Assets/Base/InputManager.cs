@@ -19,16 +19,18 @@ public class InputManager : MonoBehaviour
     List<TileBehavior> highlightedTiles = new List<TileBehavior>();
     GameActionData selectedAction;
 
-    TileBehavior tileClicked;
+    TileBehavior prevTileClicked;
 
     void Start()
     {
         this.ActionExecutor.ActionExecutionComplete += this.OnActionExecutionCompleted;
+        this.ActionExecutor.ActionExecutionStarted += this.OnActionExecutionStarted;
     }
 
     void OnDestroy()
     {
         this.ActionExecutor.ActionExecutionComplete -= this.OnActionExecutionCompleted;
+        this.ActionExecutor.ActionExecutionStarted -= this.OnActionExecutionStarted;
     }
     
     void Update()
@@ -39,11 +41,11 @@ public class InputManager : MonoBehaviour
         }
     }
 
-    public void TileClicked(TileBehavior tileClicked)
+    public void OnTileClicked(TileBehavior tileClicked)
     {
         if (this.selectedAction == null)
         {
-            if (this.tileClicked != null) //todo: && !this.Player.ActionExecuted.Started)
+            if (this.prevTileClicked != null) //todo: && !this.Player.ActionExecuted.Started)
             {
                 Point destination = tileClicked.Pos;
                 this.QueueDefaultMoveTo(destination);
@@ -55,7 +57,7 @@ public class InputManager : MonoBehaviour
             }
             else
             {
-                this.tileClicked = tileClicked;
+                this.prevTileClicked = tileClicked;
                 StartCoroutine( this.RemoveClickedTileAfterDelay() );
             }
             return;
@@ -71,6 +73,39 @@ public class InputManager : MonoBehaviour
         this.selectedAction = null;
     }
 
+    public void OnTileHoveredIn(TileBehavior tileHovered)
+    {
+        this.ClearHighlightedTiles();
+
+        if (tileHovered.Character != null && tileHovered.Character is Player)
+        {
+            return;
+        }
+
+        if (tileHovered.LightLevel < 0.1f)
+        {
+            return;
+        }
+
+        Point playerPos = this.LevelMng.GetPosOfCharacter(this.Player);
+
+        Point[] path = this.LevelMng.PathFromAtoB(playerPos, tileHovered.Pos);
+
+        TileBehavior[] toHighlight = new TileBehavior[ path.Length ];
+        for (int i = 0; i < path.Length; i++)
+        {
+            TileBehavior tileBhv = this.LevelMng.GetTileBehavior(path[i]);
+            toHighlight[i] = tileBhv;
+        }
+
+        this.HighlightTiles(toHighlight);
+    }
+
+    public void OnTileHoveredOut(TileBehavior tileHovered)
+    {
+        this.ClearHighlight(tileHovered);
+    }
+
     public void SetSelectedAction(GameActionData actionData)
     {
         this.selectedAction = actionData;
@@ -78,11 +113,7 @@ public class InputManager : MonoBehaviour
         int range = actionData.Range;
         Point playerPos = this.LevelMng.GetPosOfCharacter(this.Player);
         TileBehavior[] tilesInRange = this.LevelMng.TilesAroundInRange(playerPos, range);
-        foreach (var tile in tilesInRange)
-        {
-            tile.IsHighlighted = true;
-        }
-        this.highlightedTiles.AddRange(tilesInRange);
+        this.HighlightTiles(tilesInRange);
     }
 
     public void ClearHighlightedTiles()
@@ -94,11 +125,26 @@ public class InputManager : MonoBehaviour
         this.highlightedTiles.Clear();
     }
 
+    void ClearHighlight(TileBehavior tileBhv)
+    {
+        this.highlightedTiles.Remove(tileBhv);
+        tileBhv.IsHighlighted = false;
+    }
+
+    void HighlightTiles(TileBehavior[] tilesInRange)
+    {
+        foreach (var tile in tilesInRange)
+        {
+            tile.IsHighlighted = true;
+        }
+        this.highlightedTiles.AddRange(tilesInRange);
+    }
+
     IEnumerator RemoveClickedTileAfterDelay()
     {
         yield return new WaitForSeconds(0.2f);
 
-        this.tileClicked = null;
+        this.prevTileClicked = null;
     }
 
     void QueueDefaultMoveTo(Point destination)
@@ -120,6 +166,11 @@ public class InputManager : MonoBehaviour
 
             from = to;
         }
+    }
+
+    void OnActionExecutionStarted()
+    {
+        this.ClearHighlightedTiles() ;  
     }
 
     void OnActionExecutionCompleted()

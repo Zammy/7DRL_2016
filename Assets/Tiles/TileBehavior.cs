@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine.EventSystems;
 using System;
 
-public class TileBehavior : MonoBehaviour, IPointerClickHandler
+public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     //Set through Unity
     public GameObject Background;
@@ -13,6 +13,8 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler
     //
 
     public Action<TileBehavior> Clicked;
+    public Action<TileBehavior> HoverIn;
+    public Action<TileBehavior> HoverOut;
 
     public Tile Tile
     {
@@ -81,6 +83,24 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         this.Clicked(this);
+    }
+
+    #endregion
+
+    #region IPointerEnterHandler implementation
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        this.HoverIn(this);
+    }
+
+    #endregion
+
+    #region IPointerExitHandler implementation
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        this.HoverOut(this);
     }
 
     #endregion

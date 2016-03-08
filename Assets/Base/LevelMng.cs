@@ -31,6 +31,11 @@ public class LevelMng : MonoBehaviour
         _instance = this;
     }
 
+    void OnDestroy()
+    {
+        //TODO: need to cleanup all tiles event handlers
+    }
+
     public void LoadLevel(Dungeon dungeon)
     {
         AddTilesTo(dungeon.Tiles, this.Level);
@@ -87,7 +92,9 @@ public class LevelMng : MonoBehaviour
                 var behavior = tileGo.GetComponent<TileBehavior>();
                 behavior.Tile = tile;
                 behavior.Pos = new Point(x, y);
-                behavior.Clicked += this.InputManager.TileClicked;
+                behavior.Clicked += this.InputManager.OnTileClicked;
+                behavior.HoverIn += this.InputManager.OnTileHoveredIn;
+                behavior.HoverOut += this.InputManager.OnTileHoveredOut;
                 this.level[x, y] = behavior;
             }
         }

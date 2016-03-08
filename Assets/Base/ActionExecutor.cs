@@ -6,21 +6,11 @@ using System;
 
 public class ActionExecutor : MonoBehaviour 
 {
-//    public static ActionExecutor Instance;
-
-//    public Map Map;
-
-//    public Announcements Announcements;
-
-//    void Awake()
-//    {
-//        Instance = this;
-//    }
-
     //Set through Unity
     public ActionExecutorList ActionExecutorList;
     //
 
+    public event Action ActionExecutionStarted;
     public event Action ActionExecutionComplete;
 
     List<GameAction> actions = new List<GameAction>();
@@ -36,9 +26,6 @@ public class ActionExecutor : MonoBehaviour
     public void EnqueueMoveAction(Character character, MoveGameActionData moveActionData, TileBehavior fromTile,  TileBehavior target, int delay = 0)
     {
         var gameAction = new MoveGameAction(moveActionData, character, fromTile, target, delay);
-    
-        this.ActionExecutorList.AddAction(gameAction);
-        this.actions.Add(gameAction);
 
         this.Enqueue(gameAction, character);
     }
@@ -115,13 +102,19 @@ public class ActionExecutor : MonoBehaviour
                 {
                     var action = this.actions[i];
 
-                    if (!action.Tick())
+                    bool hasStarted = action.Started;
+
+                    actionFinished = action.Tick();
+
+                    if (!hasStarted && action.Started)
                     {
-                        continue;
+                        this.ActionExecutionStarted();
                     }
 
-                    this.actions.RemoveAt(i);
-                    actionFinished = true;
+                    if (actionFinished)
+                    {
+                        this.actions.RemoveAt(i);
+                    }
                 }
             }
             yield return null;
