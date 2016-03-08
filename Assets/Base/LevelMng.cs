@@ -126,20 +126,11 @@ public class LevelMng : MonoBehaviour
             }
         };
 
-        for (int i = -range; i <= range; i++)
-        {
-            int x = pos.X + i;
-            int left = range - Mathf.Abs(i);
+        Point[] pointsInRange = this.PointsInRange(pos, range);
 
-            if (left == 0)
-            {
-                tryAddTileBehavior( new Point(x, pos.Y) );
-            }
-            else
-            {
-                tryAddTileBehavior( new Point(x, pos.Y + left) );
-                tryAddTileBehavior( new Point(x, pos.Y - left) );
-            }
+        foreach (var p in pointsInRange)
+        {
+            tryAddTileBehavior(p);
         }
 
         return tiles.ToArray();
@@ -154,6 +145,30 @@ public class LevelMng : MonoBehaviour
         }
         return tileBhv.Pos;
     }
+
+    Point[] PointsInRange(Point pos, int range)
+    {
+        List<Point> points = new List<Point>();
+
+        for (int i = -range; i <= range; i++)
+        {
+            int x = pos.X + i;
+            int left = range - Mathf.Abs(i);
+
+            if (left == 0)
+            {
+                points.Add( new Point(x, pos.Y) );
+            }
+            else
+            {
+                points.Add( new Point(x, pos.Y + left) );
+                points.Add( new Point(x, pos.Y - left) );
+            }
+        }
+
+        return points.ToArray();
+    }
+
     #endregion
 
     #region Path Finder
@@ -328,7 +343,10 @@ public class LevelMng : MonoBehaviour
         do
         {
             path.Add(step.Pos);
-            step = step.Parent;
+            if (step.Parent != null)
+            {
+                step = step.Parent;
+            }
         }
         while(step.Parent != null);
 
@@ -337,4 +355,56 @@ public class LevelMng : MonoBehaviour
         return path.ToArray();
     }
     #endregion
+
+    #region Line of Sight
+
+
+    public List<TileBehavior> TilesAroundInSight(Point pos, int range)
+    {
+        List<TileBehavior> inSight = new List<TileBehavior>();
+
+        Vector2 dir;
+        for (float i = 0; i <= Mathf.PI*2; i += Mathf.PI/128f)
+        {
+            dir.x = Mathf.Sin(i);
+            dir.y = Mathf.Cos(i);
+
+            var behaviorsInDir = GetAllTileBehaviorsInDirection(pos, dir, range);
+            foreach(var tileBhv in behaviorsInDir)
+            {
+                if (!inSight.Contains(tileBhv))
+                {
+                    inSight.Add(tileBhv);
+                }
+
+                if (!tileBhv.Tile.IsPassable)
+                {
+                    break;
+                }
+            }
+        }
+
+        return inSight;
+    }
+
+    List<TileBehavior> GetAllTileBehaviorsInDirection(Point origin, Vector2 direction, float distance)
+    {
+        var from = new Vector2(origin.X, origin.Y);
+        RaycastHit2D[] hits = Physics2D.RaycastAll(from, direction, distance, LayerMask.GetMask("Level") );
+
+
+        List<TileBehavior> tiles = new List<TileBehavior>(hits.Length);
+        foreach (RaycastHit2D hit in hits)
+        {
+            var tileBhv = hit.transform.GetComponent<TileBehavior>();
+            if (tileBhv != null && tileBhv.Pos != origin)
+            {
+                tiles.Add(tileBhv);
+            }
+        }
+        return tiles;
+    }
+
+    #endregion
+
 }

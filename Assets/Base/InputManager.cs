@@ -129,6 +129,11 @@ public class InputManager : MonoBehaviour
             return;
         }
 
+        if (!tileHovered.Tile.IsPassable)
+        {
+            return;
+        }
+
         Point playerPos = this.LevelMng.GetPosOfCharacter(this.Player);
 
         Point[] path = this.LevelMng.PathFromAtoB(playerPos, tileHovered.Pos);
@@ -150,7 +155,10 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        this.ClearHighlight(tileHovered);
+        if (tileHovered.Tile.Type == TileType.Ground)
+        {
+            this.ClearHighlight(tileHovered);
+        }
     }
 
     public void SetSelectedAction(GameActionData actionData)

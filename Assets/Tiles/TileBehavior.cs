@@ -43,6 +43,8 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
                 value.transform.SetParent(this.transform);
                 value.transform.localPosition = Vector3.zero;
                 this.Static.SetActive(false);
+
+                this.Character.gameObject.SendMessage("LocationChanged");
             }
             else
             {
