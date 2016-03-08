@@ -15,7 +15,7 @@ public class ActionExecutor : MonoBehaviour
 
     List<GameAction> actions = new List<GameAction>();
 
-    bool isExecutingActions = false;
+    public bool IsExecutingActions {get; private set;}
 
     public void EnqueueAction(Character character, GameActionData gameActionData, TileBehavior target, int delay = 0)
     {
@@ -25,6 +25,7 @@ public class ActionExecutor : MonoBehaviour
 
     public void EnqueueMoveAction(Character character, MoveGameActionData moveActionData, TileBehavior fromTile,  TileBehavior target, int delay = 0)
     {
+        //TODO: check if move is valid (if there is another character going to tile can't enqueue)
         var gameAction = new MoveGameAction(moveActionData, character, fromTile, target, delay);
 
         this.Enqueue(gameAction, character);
@@ -44,7 +45,7 @@ public class ActionExecutor : MonoBehaviour
 
     public void Play()
     {
-        if (this.isExecutingActions || this.actions.Count == 0)
+        if (this.IsExecutingActions || this.actions.Count == 0)
             return;
 
 //        var charactersWithoutActions = new List<Character>();
@@ -62,7 +63,7 @@ public class ActionExecutor : MonoBehaviour
 //        }
 //
 
-        this.isExecutingActions = true;
+        this.IsExecutingActions = true;
         StartCoroutine( this.ExecuteActions() );
     }
 
@@ -120,7 +121,7 @@ public class ActionExecutor : MonoBehaviour
             yield return null;
         }
 
-        this.isExecutingActions = false;
+        this.IsExecutingActions = false;
 
         this.ActionExecutionComplete();
     }

@@ -35,9 +35,46 @@ public class InputManager : MonoBehaviour
     
     void Update()
     {
+        if (this.ActionExecutor.IsExecutingActions)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             this.ActionExecutorList.PlayClicked();
+        }
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            Point origin = this.LevelMng.GetPosOfCharacter(this.Player);
+            Point destination = new Point(origin);
+            destination.X -= 1;
+            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+        }
+
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            Point origin = this.LevelMng.GetPosOfCharacter(this.Player);
+            Point destination = new Point(origin);
+            destination.Y += 1;
+            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+        }
+
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            Point origin = this.LevelMng.GetPosOfCharacter(this.Player);
+            Point destination = new Point(origin);
+            destination.X += 1;
+            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+        }
+
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            Point origin = this.LevelMng.GetPosOfCharacter(this.Player);
+            Point destination = new Point(origin);
+            destination.Y -= 1;
+            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
         }
     }
 
@@ -75,6 +112,11 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredIn(TileBehavior tileHovered)
     {
+        if (this.selectedAction)
+        {
+            return;
+        }
+
         this.ClearHighlightedTiles();
 
         if (tileHovered.Character != null && tileHovered.Character is Player)
@@ -103,6 +145,11 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredOut(TileBehavior tileHovered)
     {
+        if (this.selectedAction)
+        {
+            return;
+        }
+
         this.ClearHighlight(tileHovered);
     }
 
@@ -170,12 +217,28 @@ public class InputManager : MonoBehaviour
 
     void OnActionExecutionStarted()
     {
-        this.ClearHighlightedTiles() ;  
+        this.ClearHighlightedTiles();
     }
 
     void OnActionExecutionCompleted()
     {
-        if (!this.Player.HasEnemiesInSight())
+        this.CheckIfNoEnemiesAndAutoPlayActions();
+    }
+
+    void CheckIfPlayerCanMoveToTileAndQueue(Point origin, Point destination)
+    {
+        var originTile = this.LevelMng.GetTileBehavior(origin);
+        var destTile = this.LevelMng.GetTileBehavior(destination);
+        if (destTile != null && destTile.Tile.IsPassable)
+        {
+            this.ActionExecutor.EnqueueMoveAction(this.Player, this.Player.DefaultMoveAction, originTile, destTile);
+            this.CheckIfNoEnemiesAndAutoPlayActions();
+        }
+    }
+
+    void CheckIfNoEnemiesAndAutoPlayActions()
+    {
+        if (!this.Player.HasEnemiesInSight() && !this.ActionExecutor.IsExecutingActions)
         {
             this.ActionExecutor.Play();
         }
