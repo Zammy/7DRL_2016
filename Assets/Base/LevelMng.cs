@@ -17,6 +17,7 @@ public class LevelMng : MonoBehaviour
     //Set through Unity
     public GameObject GroundPrefab;
     public GameObject WallPrefab;
+    public GameObject EndPrefab;
 
     public float TileSize;
 
@@ -25,6 +26,7 @@ public class LevelMng : MonoBehaviour
     //
 
     private TileBehavior[,] level;
+    private Player player;
 
     void Awake()
     {
@@ -44,6 +46,23 @@ public class LevelMng : MonoBehaviour
     public void AddCharacterOnPos(Character character, Point pos)
     {
         this.level[pos.X, pos.Y].Character = character;
+
+        if (character is Player)
+        {
+            this.player = (Player)character;
+        }
+    }
+
+    public Point GetPlayerPos()
+    {
+        if (!(this.player.ActionExecuted is MoveGameAction))
+        {
+            return this.GetCharacterPos(this.player);
+        }
+        else
+        {
+            return this.player.ActionExecuted.Target.Pos;
+        }
     }
 
     void AddTilesTo(Tile[,] tiles, Transform parent)
@@ -78,11 +97,11 @@ public class LevelMng : MonoBehaviour
 //                            prefabToUse = this.StartPrefab;
 //                            break;
 //                        }
-//                        case TileType.End:
-//                        {
-//                            prefabToUse = this.EndPrefab;
-//                            break;
-//                        }
+                    case TileType.End:
+                    {
+                        prefabToUse = this.EndPrefab;
+                        break;
+                    }
                     default:
                         break;
                 }
@@ -113,6 +132,11 @@ public class LevelMng : MonoBehaviour
         }
     }
 
+    public TileBehavior GetTileUnderneathCharacter(Character character)
+    {
+        return character.transform.parent.GetComponent<TileBehavior>();
+    }
+
     public TileBehavior[] TilesAroundInRange(Point pos, int range)
     {
         var tiles = new List<TileBehavior>();
@@ -136,9 +160,9 @@ public class LevelMng : MonoBehaviour
         return tiles.ToArray();
     }
 
-    public Point GetPosOfCharacter(Character character)
+    public Point GetCharacterPos(Character character)
     {
-        var tileBhv = character.transform.parent.GetComponent<TileBehavior>();
+        var tileBhv = this.GetTileUnderneathCharacter(character);
         if (tileBhv == null)
         {
             throw new UnityException(" Character not on any tile! ");
@@ -210,17 +234,21 @@ public class LevelMng : MonoBehaviour
     List<Step> closedList = new List<Step>();
     List<Step> openList = new List<Step>();
 
-    public Point[] PathFromAtoB(Point start, Point goal)
+    public Point[] PathFromAtoB(Point start, Point goal )
     {
         closedList.Clear();
         openList.Clear();
 
         openList.Add( new Step(start, (start-goal).Length, 0) );
 
-        Step stepGoal;
+        Step stepGoal = null;
         while(true)
         {
             var lowestScoreStep = GetLowestScoreFromList(openList, goal);
+            if (lowestScoreStep == null)
+            {
+                break;
+            }
             if (lowestScoreStep.Pos == goal) 
             {
                 stepGoal = lowestScoreStep;
@@ -274,6 +302,20 @@ public class LevelMng : MonoBehaviour
             return false;
         }
 
+
+        TileBehavior tileBhv = this.GetTileBehavior(p);
+
+        if (ActionExecutor.Instance.GetActionMovingToTile( tileBhv ) != null)
+        {
+            return false;
+        }
+
+        if (tileBhv.Character != null)
+        {
+            return false;
+        }
+
+
         return this.level[p.X, p.Y].Tile.IsPassable;
     }
 
@@ -302,6 +344,17 @@ public class LevelMng : MonoBehaviour
 
         System.Func<Point, Step> addStep = (Point pos) =>
         {
+            if (pos == goal)
+            {
+                return new Step()
+                {
+                    Pos = pos,
+                    Heuristic = 0,
+                    FromStart = around.FromStart + 1,
+                    Parent = around
+                };
+            }
+
             if (!this.IsPassable(pos))
             {
                 return null;
@@ -340,15 +393,16 @@ public class LevelMng : MonoBehaviour
     Point[] ExtractPath(Step step)
     {
         List<Point> path = new List<Point>();
-        do
+
+        while(step != null && step.Parent != null)
         {
             path.Add(step.Pos);
+
             if (step.Parent != null)
             {
                 step = step.Parent;
             }
         }
-        while(step.Parent != null);
 
         path.Reverse();
 
@@ -358,10 +412,20 @@ public class LevelMng : MonoBehaviour
 
     #region Line of Sight
 
+    List<TileBehavior> tilesCache = new List<TileBehavior>();
+    Point requestedPos;
+    int requestedRange;
 
     public List<TileBehavior> TilesAroundInSight(Point pos, int range)
     {
-        List<TileBehavior> inSight = new List<TileBehavior>();
+        if (this.requestedPos == pos && requestedRange == range)
+        {
+            return tilesCache;
+        }
+
+        this.tilesCache.Clear();
+        requestedPos = pos;
+        requestedRange = range;
 
         Vector2 dir;
         for (float i = 0; i <= Mathf.PI*2; i += Mathf.PI/128f)
@@ -372,9 +436,9 @@ public class LevelMng : MonoBehaviour
             var behaviorsInDir = GetAllTileBehaviorsInDirection(pos, dir, range);
             foreach(var tileBhv in behaviorsInDir)
             {
-                if (!inSight.Contains(tileBhv))
+                if (!tilesCache.Contains(tileBhv))
                 {
-                    inSight.Add(tileBhv);
+                    tilesCache.Add(tileBhv);
                 }
 
                 if (!tileBhv.Tile.IsPassable)
@@ -384,7 +448,7 @@ public class LevelMng : MonoBehaviour
             }
         }
 
-        return inSight;
+        return tilesCache;
     }
 
     List<TileBehavior> GetAllTileBehaviorsInDirection(Point origin, Vector2 direction, float distance)

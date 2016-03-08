@@ -6,6 +6,20 @@ using System;
 
 public class ActionExecutor : MonoBehaviour 
 {
+    static ActionExecutor _instance = null;
+    public static ActionExecutor Instance
+    {
+        get
+        {
+            return _instance;
+        }
+    }
+
+    void Awake()
+    {
+        _instance = this;
+    }
+
     //Set through Unity
     public ActionExecutorList ActionExecutorList;
     //
@@ -19,16 +33,23 @@ public class ActionExecutor : MonoBehaviour
 
     public void EnqueueAction(Character character, GameActionData gameActionData, TileBehavior target, int delay = 0)
     {
+        Debug.LogFormat("EnqueueAction {0} will {1}", character.Name, gameActionData.Name);
         GameAction gameAction = SpawnGameAction(character, gameActionData, target, delay);
         this.Enqueue(gameAction, character);
     }
 
-    public void EnqueueMoveAction(Character character, MoveGameActionData moveActionData, TileBehavior fromTile,  TileBehavior target, int delay = 0)
+    public bool EnqueueMoveAction(Character character, MoveGameActionData moveActionData, TileBehavior fromTile,  TileBehavior target, int delay = 0)
     {
-        //TODO: check if move is valid (if there is another character going to tile can't enqueue)
+        if (this.GetActionMovingToTile(target) != null)
+        {
+            return false;
+        }
+
         var gameAction = new MoveGameAction(moveActionData, character, fromTile, target, delay);
 
         this.Enqueue(gameAction, character);
+
+        return true;
     }
 
     void Enqueue(GameAction gameAction, Character character)
@@ -80,6 +101,19 @@ public class ActionExecutor : MonoBehaviour
         return null;
     }
 
+    public bool HasActionQueued(Character character)
+    {
+        foreach(var action in this.actions)
+        {
+            if (action.Character == character)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    } 
+
     void RemovePreviousAcitonForCharacter(Character character)
     {
         for (int i = this.actions.Count - 1; i >= 0; i--)
@@ -115,6 +149,7 @@ public class ActionExecutor : MonoBehaviour
                     if (actionFinished)
                     {
                         this.actions.RemoveAt(i);
+                        break;
                     }
                 }
             }
@@ -131,7 +166,7 @@ public class ActionExecutor : MonoBehaviour
         var moveActionData = actionData as MoveGameActionData;
         if (moveActionData != null)
         {
-            var charPos = LevelMng.Instance.GetPosOfCharacter(character);
+            var charPos = LevelMng.Instance.GetCharacterPos(character);
             var fromTile = LevelMng.Instance.GetTileBehavior(charPos);
             return new MoveGameAction(moveActionData, character, fromTile, target, delay);
         }
@@ -254,6 +289,16 @@ public class RechargeGameAction : GameAction
     public RechargeGameAction(GameActionData actionData, Character character, TileBehavior target)
         : base(actionData, character, target)
     {
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
+        if (this.Character.Stamina > this.Character.StartStamina)
+        {
+            this.Character.Stamina = this.Character.StartStamina;
+        }
     }
 }
     

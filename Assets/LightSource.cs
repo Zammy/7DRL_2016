@@ -8,36 +8,41 @@ public class LightSource : MonoBehaviour
 
     public float Flicker = 0.02f;
 
-    public void LocationChanged()
-    {
-        this.StopAllCoroutines();
-        StartCoroutine(this.LightSurroundings());
-    }
+    private Point lightPos;
+    private TileBehavior tileBhv;
 
-    List<TileBehavior> tilesInSight = new List<TileBehavior>();
+    public List<TileBehavior> TilesInSight = new List<TileBehavior>();
 
-    IEnumerator LightSurroundings()
+    public void UpdateLighting()
     {
-        foreach (var tile in this.tilesInSight)
+        foreach (var tile in this.TilesInSight)
         {
             tile.LightLevel = 0;
         }
 
-        var wait = new WaitForSeconds(0.1f);
         var thisTileBhv = this.GetComponent<TileBehavior>();
         if (thisTileBhv == null)
         {
             thisTileBhv = this.transform.parent.GetComponent<TileBehavior>();
         }
-        Point lightPos = thisTileBhv.Pos;
+        this.tileBhv = thisTileBhv;
+        this.lightPos = thisTileBhv.Pos;
 
-        this.tilesInSight = LevelMng.Instance.TilesAroundInSight(lightPos, this.Range);
+        this.TilesInSight = LevelMng.Instance.TilesAroundInSight(lightPos, this.Range);
+
+        this.StopAllCoroutines();
+        StartCoroutine(this.LightSurroundings());
+    }
+
+    IEnumerator LightSurroundings()
+    {
+        var wait = new WaitForSeconds(0.1f);
 
         while (true)
         {
-            thisTileBhv.LightLevel = 1f;
+            this.tileBhv.LightLevel = 1f;
 
-            foreach (TileBehavior tileBhv in this.tilesInSight)
+            foreach (TileBehavior tileBhv in this.TilesInSight)
             {
                 int range = (lightPos - tileBhv.Pos).Length;
                 float lightLevel = ( 1f - (float)range / (float)this.Range );

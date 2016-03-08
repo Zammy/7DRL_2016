@@ -5,6 +5,9 @@ using System.Collections.Generic;
 public class Character : MonoBehaviour 
 {
     //Set through Unity
+    public string Name;
+
+
     public GameActionData[] AvailableActions;
     public int StartHealth;
     public int StartStamina;
@@ -36,7 +39,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    GameAction actionExecuted;
+    GameAction actionExecuted = null;
     public GameAction ActionExecuted 
     {
         get
@@ -47,6 +50,12 @@ public class Character : MonoBehaviour
         {
             this.actionExecuted = value;
         }
+    }
+
+    void Awake()
+    {
+        this.Health = this.StartHealth;
+        this.Stamina = this.StartStamina;
     }
 
     void Start()
@@ -64,7 +73,7 @@ public class Character : MonoBehaviour
 //            Debug.Log(s);
 //        }
 //        Debug.Log("==========================");
-        this.Health = this.StartHealth;
-        this.Stamina = this.StartStamina;
     }
+
+    public virtual void LocationChanged() {}
 }

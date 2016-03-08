@@ -36,12 +36,17 @@ namespace RogueLib
 
             GenCorridors(root);
 
-            var tiles = this.GenTiles();
+            Tile[,] tiles = this.GenTiles();
+
+            var lastRoomGenned = this.rooms[this.rooms.Count - 1];
+            Point endPoint = lastRoomGenned.GetRandomPointInsideRoom(1);
+            tiles[endPoint.X, endPoint.Y].Type = TileType.End;
 
             return new Dungeon()
             {
                 Tiles = tiles,
-                PlayerStartPos = this.rooms[0].GetRandomPointInsideRoom()
+                PlayerStartPos = this.rooms[0].GetRandomPointInsideRoom(1),
+                Rooms = rooms
             };
         }
 

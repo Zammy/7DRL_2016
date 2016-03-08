@@ -1,9 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 public class Player : Character, IPointerClickHandler 
 {
+    //Set through Unity
+    public LightSource Torch;
+    //
+
+    List<Monster> monstersInSight = new List<Monster>();
+
     RadialActionMenu actionMenu;
     public RadialActionMenu ActionMenu
     {
@@ -26,6 +33,8 @@ public class Player : Character, IPointerClickHandler
 
     void Start()
     {
+        this.Torch = this.GetComponent<LightSource>();
+
         foreach (var actionData in this.AvailableActions)
         {
             if (actionData is MoveGameActionData)
@@ -39,9 +48,14 @@ public class Player : Character, IPointerClickHandler
         }
     }
 
+    public override void LocationChanged()
+    {
+        this.UpdateLightAndSight();
+    }
+
     public bool HasEnemiesInSight()
     {
-        return false;
+        return this.monstersInSight.Count > 0;
     }
 
     #region IPointerClickHandler implementation
@@ -52,4 +66,19 @@ public class Player : Character, IPointerClickHandler
     }
 
     #endregion
+
+    public void UpdateLightAndSight()
+    {
+        this.Torch.UpdateLighting();
+        List<TileBehavior> tilesInSight = this.Torch.TilesInSight;
+        this.monstersInSight.Clear();
+        foreach (var tile in tilesInSight)
+        {
+            if (tile.Character && tile.Character is Monster)
+            {
+                Debug.Log("Adding monster to sight " + tile.Character.Name);
+                this.monstersInSight.Add(tile.Character as Monster);
+            }
+        }
+    }
 }

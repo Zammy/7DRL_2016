@@ -20,6 +20,7 @@ namespace RogueLib
     {
         public Tile[,] Tiles;
         public Point PlayerStartPos;
+        public List<Room> Rooms;
     }
 
     public class BinaryNode

@@ -44,7 +44,7 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
                 value.transform.localPosition = Vector3.zero;
                 this.Static.SetActive(false);
 
-                this.Character.gameObject.SendMessage("LocationChanged");
+                this.Character.LocationChanged();
             }
             else
             {
@@ -119,6 +119,11 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         {
             sprite = this.Static.GetComponent<SpriteRenderer>();
             color = Color.white;
+        }
+        else if (this.Tile.Type == TileType.End)
+        {
+            sprite = this.Static.GetComponent<SpriteRenderer>();
+            ColorUtility.TryParseHtmlString("CAA300FF", out color);
         }
 
         float h;

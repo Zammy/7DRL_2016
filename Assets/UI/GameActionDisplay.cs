@@ -2,13 +2,18 @@
 using System.Collections;
 using UnityEngine.UI;
 using System;
+using UnityEngine.EventSystems;
 
-public class GameActionDisplay : MonoBehaviour 
+public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     //Set through Unity
-    public Text Name;
+    public Text CharacterName;
+    public Text ActionName;
     public Text TimeLeft;
     public Button CancelActionButton;
+
+    public Image Background;
+    public Color HoverColor;
     //
 
     public event Action<GameActionDisplay> Finish;
@@ -24,11 +29,13 @@ public class GameActionDisplay : MonoBehaviour
         set
         {
             this.gameAction = value;
-            this.Name.text = value.ActionData.Name;
+            this.ActionName.text = value.ActionData.Name;
+
+            this.CharacterName.text = value.Character.Name;
         }
     }
 
-	void Update () 
+	void Update ()
     {
         if (this.gameAction == null)
             return;
@@ -50,4 +57,21 @@ public class GameActionDisplay : MonoBehaviour
         this.Cancel(this);
     }
 
+    #region IPointerEnterHandler implementation
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        this.GameAction.Target.IsHighlighted = true;
+        this.Background.color = this.HoverColor;
+    }
+    #endregion
+
+    #region IPointerExitHandler implementation
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        this.GameAction.Target.IsHighlighted = false;
+        this.Background.color = Color.black;
+    }
+
+    #endregion
 }
