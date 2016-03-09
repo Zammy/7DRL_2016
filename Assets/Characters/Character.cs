@@ -14,7 +14,7 @@ public class Character : MonoBehaviour
     //
 
     int health;
-    public int Health
+    public virtual int Health
     {
         get
         {
@@ -27,7 +27,7 @@ public class Character : MonoBehaviour
     }
 
     int stamina;
-    public int Stamina
+    public virtual int Stamina
     {
         get
         {
@@ -54,12 +54,14 @@ public class Character : MonoBehaviour
 
     void Awake()
     {
-        this.Health = this.StartHealth;
-        this.Stamina = this.StartStamina;
+
     }
 
-    void Start()
+    protected virtual void Start()
     {
+        this.Health = this.StartHealth;
+        this.Stamina = this.StartStamina;
+
 //        Debug.Log("======= Character Actions =======");
 //        foreach (GameActionData action in this.AvailableActions)
 //        {

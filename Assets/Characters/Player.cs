@@ -12,6 +12,44 @@ public class Player : Character, IPointerClickHandler
     List<TileBehavior> tilesInSight = new List<TileBehavior>();
     List<Monster> monstersInSight = new List<Monster>();
 
+    public PlayerStat HealthStat
+    {
+        get;
+        set;
+    }
+
+    public PlayerStat StaminaStat
+    {
+        get;
+        set;
+    }
+
+    public override int Health
+    {
+        get
+        {
+            return base.Health;
+        }
+        set
+        {
+            base.Health = value;
+            this.HealthStat.State = value;
+        }
+    }
+
+    public override int Stamina
+    {
+        get
+        {
+            return base.Stamina;
+        }
+        set
+        {
+            base.Stamina = value;
+            this.StaminaStat.State = value;
+        }
+    }
+
     RadialActionMenu actionMenu;
     public RadialActionMenu ActionMenu
     {
@@ -44,8 +82,10 @@ public class Player : Character, IPointerClickHandler
         }
     }
 
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+
         this.Torch = this.GetComponent<LightSource>();
 
         this.UpdateLightAndSight();
@@ -100,7 +140,6 @@ public class Player : Character, IPointerClickHandler
         {
             if (tile.Character && tile.Character is Monster)
             {
-                Debug.Log("Adding monster to sight " + tile.Character.Name);
                 this.monstersInSight.Add(tile.Character as Monster);
             }
         }

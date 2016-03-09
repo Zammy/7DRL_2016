@@ -4,6 +4,7 @@ using RogueLib;
 
 public class Glue : MonoBehaviour 
 {
+    //Set through Unity
     public LevelMng LeveMng;
     public Camera MainCamera;
 
@@ -14,6 +15,10 @@ public class Glue : MonoBehaviour
     public InputManager InputManager;
 
     public int Seed;
+
+    public PlayerStat HealthStat;
+    public PlayerStat StaminaStat;
+    //
 
 	void Start () 
     {
@@ -40,23 +45,26 @@ public class Glue : MonoBehaviour
         this.LeveMng.AddCharacterOnPos(player as Character, dungeon.PlayerStartPos);
         playerGo.transform.localPosition = Vector3.zero;
         player.ActionMenu = this.ActionMenu;
+        player.HealthStat = this.HealthStat;
+        player.StaminaStat = this.StaminaStat;
 
         this.InputManager.Player = player;
 
 
-        Room room = dungeon.Rooms[0];
-        Point dogStartPos;
-        while(true)
-        {
-            dogStartPos = room.GetRandomPointInsideRoom(1);
-            if (dogStartPos != dungeon.PlayerStartPos)
-            {
-                break;
-            }
-        }
-        var dogGo = (GameObject) Instantiate(this.DogPrefab);
-        var dog = dogGo.GetComponent<Monster>();
-        this.LeveMng.AddCharacterOnPos(dog as Character, dogStartPos);
+//        Room room = dungeon.Rooms[0];
+//        Point dogStartPos;
+//        while(true)
+//        {
+//            dogStartPos = room.GetRandomPointInsideRoom(1);
+//            if (dogStartPos != dungeon.PlayerStartPos)
+//            {
+//                break;
+//            }
+//        }
+//        var dogGo = (GameObject) Instantiate(this.DogPrefab);
+//        var dog = dogGo.GetComponent<Monster>();
+//        this.LeveMng.AddCharacterOnPos(dog as Character, dogStartPos);
+
 //
 //        for (int i = 1; i < dungeon.Rooms.Count; i++)
 //        {

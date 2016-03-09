@@ -31,12 +31,36 @@ public class ActionDataOption : ActionDataDisplay, IPointerClickHandler, IPointe
         }
     }
 
+    bool disabled = false;
+    public bool Disabled
+    {
+        get
+        {
+            return disabled;
+        }
+        set
+        {
+            disabled = value;
+
+            if (value)
+            {
+                this.Background.color = Color.gray;
+            }
+            else
+            {
+                this.IsHighlighted = this.IsHighlighted;
+            }
+        }
+    }
+
     public event Action<ActionDataOption> Clicked;
 
     #region IPointerClickHandler implementation
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (disabled)
+            return;
         this.Clicked(this);
     }
 
@@ -46,6 +70,8 @@ public class ActionDataOption : ActionDataDisplay, IPointerClickHandler, IPointe
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (disabled)
+            return;
         this.IsHighlighted = true;
     }
 
@@ -55,6 +81,8 @@ public class ActionDataOption : ActionDataDisplay, IPointerClickHandler, IPointe
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (disabled)
+            return;
         this.IsHighlighted = false;
     }
 

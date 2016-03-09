@@ -35,9 +35,16 @@ public class ActionExecutor : MonoBehaviour
     {
         GameAction gameAction = SpawnGameAction(character, gameActionData, target);
 
+        //check if move to not valid target
         var moveGameAction = gameAction as MoveGameAction;
         if (moveGameAction != null &&
             (moveGameAction.Target.Character || this.GetActionMovingToTile(target) != null))
+        {
+            return false;
+        }
+
+        //check if enough stamina to execute
+        if (character.Stamina < gameActionData.StaminaCost)
         {
             return false;
         }

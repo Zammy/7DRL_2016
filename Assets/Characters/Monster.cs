@@ -10,8 +10,10 @@ public class Monster : Character
 
     Dictionary<string, GameActionData> actions;
 
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+
         ActionExecutor.Instance.ActionExecutionCompleted += this.OnActionExecCompleted;
 
         this.actions = new Dictionary<string, GameActionData>();
@@ -33,6 +35,7 @@ public class Monster : Character
         if (this.Stamina < 4)
         {
             ActionExecutor.Instance.EnqueueAction(this, this.actions["Bark"], LevelMng.Instance.GetTileBehavior(playerPos));
+            return;
         }
 
         Point diff = playerPos - selfPos;

@@ -44,6 +44,11 @@ public class RadialActionMenu : MonoBehaviour
             }
 
             this.InputManager.ClearHighlightedTiles();
+
+            if (value)
+            {
+                this.DisableTooExpensiveActions();
+            }
         }
     }
 
@@ -115,5 +120,22 @@ public class RadialActionMenu : MonoBehaviour
             Destroy(item);
         }
     }
-        
+
+    void DisableTooExpensiveActions()
+    {
+        int stamina = LevelMng.Instance.Player.Stamina;
+        System.Action<Transform> checkStamina = (Transform trans) =>
+        {
+            foreach (Transform child in trans) 
+            {
+                ActionDataOption actionOpt = child.GetComponent<ActionDataOption>();
+                actionOpt.Disabled = actionOpt.GameActionData.StaminaCost > stamina;
+            }
+        };
+
+        checkStamina(this.MoveActionList.transform);
+        checkStamina(this.AttackActionList.transform);
+        checkStamina(this.RechargeActionList.transform);
+        checkStamina(this.DefendActionList.transform);
+    }
 }
