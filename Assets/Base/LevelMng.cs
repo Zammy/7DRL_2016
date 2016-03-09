@@ -45,12 +45,12 @@ public class LevelMng : MonoBehaviour
 
     public void AddCharacterOnPos(Character character, Point pos)
     {
-        this.level[pos.X, pos.Y].Character = character;
-
         if (character is Player)
         {
             this.player = (Player)character;
         }
+
+        this.level[pos.X, pos.Y].Character = character;
     }
 
     public Point GetPlayerPos()

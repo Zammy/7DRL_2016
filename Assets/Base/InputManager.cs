@@ -87,10 +87,7 @@ public class InputManager : MonoBehaviour
                 Point destination = tileClicked.Pos;
                 this.QueueDefaultMoveTo(destination);
 
-                if (!this.Player.HasEnemiesInSight())
-                {
-                    this.ActionExecutor.Play();
-                }
+                this.ActionExecutor.Play();
             }
             else
             {
@@ -124,7 +121,7 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        if (tileHovered.LightLevel < 0.1f)
+        if (tileHovered.GetComponent<LightTarget>().LightLevel < 0.1f)
         {
             return;
         }
@@ -232,9 +229,10 @@ public class InputManager : MonoBehaviour
 
     void OnActionExecutionCompleted()
     {
-        if (this.ActionExecutor.HasActionQueued(this.Player))
+        if (this.ActionExecutor.HasActionQueued(this.Player) && !this.Player.HasEnemiesInSight() )
         {
-            this.CheckIfNoEnemiesAndAutoPlayActions();
+            Debug.Log("Auto play triggered");
+            this.ActionExecutor.Play();
         }
     }
 
@@ -245,15 +243,6 @@ public class InputManager : MonoBehaviour
         if (destTile != null && destTile.Tile.IsPassable)
         {
             this.ActionExecutor.EnqueueMoveAction(this.Player, this.Player.DefaultMoveAction, originTile, destTile);
-            this.CheckIfNoEnemiesAndAutoPlayActions();
-        }
-    }
-
-    void CheckIfNoEnemiesAndAutoPlayActions()
-    {
-        if (!this.Player.HasEnemiesInSight() )
-        {
-            Debug.Log("Auto play triggered");
             this.ActionExecutor.Play();
         }
     }

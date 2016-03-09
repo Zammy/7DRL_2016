@@ -10,6 +10,7 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
     public GameObject Static;
 
     public Color HighlightColor;
+    public LightTarget LightTarget;
     //
 
     public Action<TileBehavior> Clicked;
@@ -28,16 +29,16 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         set;
     }
 
-    private Character charOnTile;
+    private Character character;
     public Character Character
     {
         get
         {
-            return this.charOnTile;
+            return this.character;
         }
         set
         {
-            this.charOnTile = value;
+            this.character = value;
             if (value != null)
             {
                 value.transform.SetParent(this.transform);
@@ -61,6 +62,7 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         }
         set
         {
+            this.LightTarget.enabled = !value;
             var sprite = this.Background.GetComponent<SpriteRenderer>();
             if (value)
             {
@@ -73,11 +75,8 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         }
     }
 
-    public float LightLevel = 1f;
-
     void Start()
     {
-        StartCoroutine( this.DoLight() );
     }
 
     #region IPointerClickHandler implementation
@@ -107,41 +106,4 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
 
     #endregion
 
-    IEnumerator DoLight()
-    {
-        SpriteRenderer sprite = null;
-        Color color = new Color(255, 55, 0);
-        if (this.Tile.Type == TileType.Wall)
-        {
-            sprite = this.Background.GetComponent<SpriteRenderer>();
-        }
-        else if (this.Tile.Type == TileType.Ground)
-        {
-            sprite = this.Static.GetComponent<SpriteRenderer>();
-            color = Color.white;
-        }
-        else if (this.Tile.Type == TileType.End)
-        {
-            sprite = this.Static.GetComponent<SpriteRenderer>();
-            ColorUtility.TryParseHtmlString("CAA300FF", out color);
-        }
-
-        float h;
-        float s;
-        float v;
-        ColorManipulator.ColorToHSV(color, out h, out s, out v);
-
-        var wait = new WaitForSeconds(0.25f);
-        while (true)
-        {
-            if (!this.IsHighlighted)
-            {
-                v = Mathf.Lerp(0, 1, this.LightLevel);
-                
-                sprite.color = ColorManipulator.ColorFromHSV(h, s, v);
-            }
-
-            yield return wait;
-        }
-    }
 }

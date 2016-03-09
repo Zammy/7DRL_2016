@@ -30,6 +30,8 @@ public class Monster : Character
 
     void DecideAndQueueAction()
     {
+        return;
+
         Point playerPos = LevelMng.Instance.GetPlayerPos();
         Point selfPos = LevelMng.Instance.GetCharacterPos(this);
         if (this.Stamina < 4)

@@ -9,6 +9,7 @@ public class Player : Character, IPointerClickHandler
     public LightSource Torch;
     //
 
+    List<TileBehavior> tilesInSight = new List<TileBehavior>();
     List<Monster> monstersInSight = new List<Monster>();
 
     RadialActionMenu actionMenu;
@@ -34,6 +35,8 @@ public class Player : Character, IPointerClickHandler
     void Start()
     {
         this.Torch = this.GetComponent<LightSource>();
+
+        this.UpdateLightAndSight();
 
         foreach (var actionData in this.AvailableActions)
         {
@@ -69,8 +72,15 @@ public class Player : Character, IPointerClickHandler
 
     public void UpdateLightAndSight()
     {
-        this.Torch.UpdateLighting();
-        List<TileBehavior> tilesInSight = this.Torch.TilesInSight;
+        this.tilesInSight = LevelMng.Instance.TilesAroundInSight(LevelMng.Instance.GetPlayerPos(), this.Torch.Range);
+
+        var lightTargets = new List<LightTarget>();
+        foreach (var tile in this.tilesInSight)
+        {
+            lightTargets.AddRange(tile.GetComponentsInChildren<LightTarget>());
+        }
+        this.Torch.UpdateLighting( lightTargets );
+
         this.monstersInSight.Clear();
         foreach (var tile in tilesInSight)
         {

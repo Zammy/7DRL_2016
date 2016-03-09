@@ -43,15 +43,15 @@ public class Glue : MonoBehaviour
 
         this.InputManager.Player = player;
 
-//        for (int i = 1; i < dungeon.Rooms.Count; i++)
-//        {
-//            Room room = dungeon.Rooms[i];
-//            var dogGo = (GameObject) Instantiate(this.DogPrefab);
-//
-//            Point p = room.GetRandomPointInsideRoom(1);
-//            var dog = dogGo.GetComponent<Monster>();
-//            this.LeveMng.AddCharacterOnPos(dog as Character, p);
-//        }
+        for (int i = 1; i < dungeon.Rooms.Count; i++)
+        {
+            Room room = dungeon.Rooms[i];
+            var dogGo = (GameObject) Instantiate(this.DogPrefab);
+
+            Point p = room.GetRandomPointInsideRoom(1);
+            var dog = dogGo.GetComponent<Monster>();
+            this.LeveMng.AddCharacterOnPos(dog as Character, p);
+        }
 
 	}
 }
