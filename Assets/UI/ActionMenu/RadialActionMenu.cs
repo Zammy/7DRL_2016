@@ -40,6 +40,7 @@ public class RadialActionMenu : MonoBehaviour
             if (!value)
             {
                 this.SelectedAction.gameObject.SetActive(false);
+                LevelMng.Instance.Player.IsIntractable = true;
             }
 
             this.InputManager.ClearHighlightedTiles();
@@ -55,12 +56,19 @@ public class RadialActionMenu : MonoBehaviour
 
         foreach (var actionData in actions)
         {
-            var moveActionData = actionData as MoveGameActionData;
-            if (moveActionData != null)
-            {
-                var actOpt = InstantiateActionOption(this.MoveActionList.transform);
-                actOpt.GameActionData = moveActionData;
-            }
+            ActionDataOption actOpt;
+            if (actionData is MoveGameActionData)
+                actOpt = InstantiateActionOption(this.MoveActionList.transform);
+            else if (actionData is AttackGameActionData)
+                actOpt = InstantiateActionOption(this.AttackActionList.transform);
+            else if (actionData is RechargeGameActionData)
+                actOpt = InstantiateActionOption(this.RechargeActionList.transform);
+            else if (actionData is DefendGameActionData)
+                actOpt = InstantiateActionOption(this.DefendActionList.transform);
+            else
+                throw new UnityException("This should not happen!");
+
+            actOpt.GameActionData = actionData;
         }
     }
 
@@ -79,6 +87,8 @@ public class RadialActionMenu : MonoBehaviour
         actionOpt.IsHighlighted = false;
 
         this.InputManager.SetSelectedAction(actionOpt.GameActionData);
+
+        LevelMng.Instance.Player.IsIntractable = false;
     }
 
     ActionDataOption InstantiateActionOption(Transform parent)

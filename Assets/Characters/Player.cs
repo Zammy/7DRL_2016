@@ -32,6 +32,18 @@ public class Player : Character, IPointerClickHandler
         private set;
     }
 
+    public bool IsIntractable
+    {
+        get
+        {
+            return this.GetComponent<BoxCollider2D>().enabled;
+        }
+        set
+        {
+            this.GetComponent<BoxCollider2D>().enabled = value;
+        }
+    }
+
     void Start()
     {
         this.Torch = this.GetComponent<LightSource>();
@@ -75,6 +87,8 @@ public class Player : Character, IPointerClickHandler
         this.tilesInSight = LevelMng.Instance.TilesAroundInSight(LevelMng.Instance.GetPlayerPos(), this.Torch.Range);
 
         var lightTargets = new List<LightTarget>();
+        lightTargets.Add(this.GetComponent<LightTarget>());
+        lightTargets.Add(this.transform.parent.GetComponent<LightTarget>());
         foreach (var tile in this.tilesInSight)
         {
             lightTargets.AddRange(tile.GetComponentsInChildren<LightTarget>());

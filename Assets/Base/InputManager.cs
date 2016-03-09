@@ -21,15 +21,17 @@ public class InputManager : MonoBehaviour
 
     TileBehavior prevTileClicked;
 
+    List<Point> moveQueue = new List<Point>();
+
     void Start()
     {
-        this.ActionExecutor.ActionExecutionComplete += this.OnActionExecutionCompleted;
+        this.ActionExecutor.ActionExecutionCompleted += this.OnActionExecutionCompleted;
         this.ActionExecutor.ActionExecutionStarted += this.OnActionExecutionStarted;
     }
 
     void OnDestroy()
     {
-        this.ActionExecutor.ActionExecutionComplete -= this.OnActionExecutionCompleted;
+        this.ActionExecutor.ActionExecutionCompleted -= this.OnActionExecutionCompleted;
         this.ActionExecutor.ActionExecutionStarted -= this.OnActionExecutionStarted;
     }
     
@@ -40,41 +42,36 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            this.ActionExecutorList.PlayClicked();
-        }
-
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
             Point origin = this.LevelMng.GetPlayerPos();
             Point destination = new Point(origin);
             destination.X -= 1;
-            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+            this.CheckIfPlayerCanMoveToTileAndQueue(destination);
         }
 
-        if (Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             Point origin = this.LevelMng.GetPlayerPos();
             Point destination = new Point(origin);
             destination.Y += 1;
-            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+            this.CheckIfPlayerCanMoveToTileAndQueue(destination);
         }
 
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
         {
             Point origin = this.LevelMng.GetPlayerPos();
             Point destination = new Point(origin);
             destination.X += 1;
-            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+            this.CheckIfPlayerCanMoveToTileAndQueue(destination);
         }
 
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
             Point origin = this.LevelMng.GetPlayerPos();
             Point destination = new Point(origin);
             destination.Y -= 1;
-            this.CheckIfPlayerCanMoveToTileAndQueue(origin, destination);
+            this.CheckIfPlayerCanMoveToTileAndQueue(destination);
         }
     }
 
@@ -85,9 +82,7 @@ public class InputManager : MonoBehaviour
             if (this.prevTileClicked != null) //todo: && !this.Player.ActionExecuted.Started)
             {
                 Point destination = tileClicked.Pos;
-                this.QueueDefaultMoveTo(destination);
-
-                this.ActionExecutor.Play();
+                this.EnqueueMovePath(destination);
             }
             else
             {
@@ -109,6 +104,8 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredIn(TileBehavior tileHovered)
     {
+        return;
+
         if (this.selectedAction)
         {
             return;
@@ -147,6 +144,8 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredOut(TileBehavior tileHovered)
     {
+        return;
+
         if (this.selectedAction)
         {
             return;
@@ -199,51 +198,57 @@ public class InputManager : MonoBehaviour
         this.prevTileClicked = null;
     }
 
-    void QueueDefaultMoveTo(Point destination)
+    void EnqueueMovePath(Point destination)
     {
+        this.moveQueue.Clear();
+
         Point playerPos = this.LevelMng.GetPlayerPos();
 
         Point[] path = this.LevelMng.PathFromAtoB(playerPos, destination);
 
-        var defaultMove = this.Player.DefaultMoveAction;
+        this.moveQueue.AddRange(path);
 
-        Point from = playerPos;
-        for (int i = 0; i < path.Length; i++)
-        {
-            Point to = path[i];
-
-            TileBehavior fromTile = this.LevelMng.GetTileBehavior(from);
-            TileBehavior target = this.LevelMng.GetTileBehavior(to);
-            bool success = this.ActionExecutor.EnqueueMoveAction(this.Player, defaultMove, fromTile, target, defaultMove.Length * i);
-            if (!success)
-                break;
-
-            from = to;
-        }
+        this.EnqueueNextMoveAction();
     }
 
-    void OnActionExecutionStarted()
+    void OnActionExecutionStarted(GameAction gameAction)
     {
         this.ClearHighlightedTiles();
+        this.Player.ActionMenu.IsVisible = false;
     }
 
-    void OnActionExecutionCompleted()
+    void OnActionExecutionCompleted(GameAction gameAction)
     {
-        if (this.ActionExecutor.HasActionQueued(this.Player) && !this.Player.HasEnemiesInSight() )
+        if (gameAction.Character != this.Player ||
+            this.Player.HasEnemiesInSight())
         {
-            Debug.Log("Auto play triggered");
-            this.ActionExecutor.Play();
+            return;
         }
+
+        this.EnqueueNextMoveAction();
     }
 
-    void CheckIfPlayerCanMoveToTileAndQueue(Point origin, Point destination)
+    void CheckIfPlayerCanMoveToTileAndQueue(Point destination)
     {
-        var originTile = this.LevelMng.GetTileBehavior(origin);
         var destTile = this.LevelMng.GetTileBehavior(destination);
         if (destTile != null && destTile.Tile.IsPassable)
         {
-            this.ActionExecutor.EnqueueMoveAction(this.Player, this.Player.DefaultMoveAction, originTile, destTile);
-            this.ActionExecutor.Play();
+            if (this.ActionExecutor.EnqueueAction(this.Player, this.Player.DefaultMoveAction, destTile))
+            {
+                this.ActionExecutor.PlayWithDelay();
+            }
         }
+    }
+
+    void EnqueueNextMoveAction()
+    {
+        if (this.moveQueue.Count == 0 )
+        {
+            return;
+        }
+
+        Point nextDest = this.moveQueue[0];
+        this.moveQueue.RemoveAt(0);
+        this.CheckIfPlayerCanMoveToTileAndQueue(nextDest);
     }
 }

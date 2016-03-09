@@ -24,31 +24,33 @@ public class ActionExecutor : MonoBehaviour
     public ActionExecutorList ActionExecutorList;
     //
 
-    public event Action ActionExecutionStarted;
-    public event Action ActionExecutionComplete;
+    public event Action<GameAction> ActionExecutionStarted;
+    public event Action<GameAction> ActionExecutionCompleted;
 
     List<GameAction> actions = new List<GameAction>();
 
     public bool IsExecutingActions {get; private set;}
 
-    public void EnqueueAction(Character character, GameActionData gameActionData, TileBehavior target, int delay = 0)
+    public bool EnqueueAction(Character character, GameActionData gameActionData, TileBehavior target)
     {
-        Debug.LogFormat("EnqueueAction {0} will {1}", character.Name, gameActionData.Name);
-        GameAction gameAction = SpawnGameAction(character, gameActionData, target, delay);
-        this.Enqueue(gameAction, character);
-    }
+        GameAction gameAction = SpawnGameAction(character, gameActionData, target);
 
-    public bool EnqueueMoveAction(Character character, MoveGameActionData moveActionData, TileBehavior fromTile,  TileBehavior target, int delay = 0)
-    {
-        if (this.GetActionMovingToTile(target) != null)
+        var moveGameAction = gameAction as MoveGameAction;
+        if (moveGameAction != null &&
+            (moveGameAction.Target.Character || this.GetActionMovingToTile(target) != null))
         {
             return false;
         }
 
-        var gameAction = new MoveGameAction(moveActionData, character, fromTile, target, delay);
+        this.RemovePreviousAcitonForCharacterNotStarted(character);
+
+        Debug.LogFormat("EnqueueAction {0} will {1}", character.Name, gameActionData.Name);
 
         this.Enqueue(gameAction, character);
-
+        if (character is Player)
+        {
+            this.Play();
+        }
         return true;
     }
 
@@ -66,25 +68,27 @@ public class ActionExecutor : MonoBehaviour
 
     public void Play()
     {
-        if (this.IsExecutingActions || this.actions.Count == 0)
+        if (this.IsExecutingActions 
+            || this.actions.Count == 0
+            || !this.HasPlayerQueuedAction())
+        {
             return;
-
-//        var charactersWithoutActions = new List<Character>();
-//        foreach(Character character in this.Map.Characters)
-//        {
-//            if (character.ActionExecuted == null)
-//            {
-//                charactersWithoutActions.Add(character);
-//            }
-//        }
-//        if (charactersWithoutActions.Count > 0)
-//        {
-//            this.Announcements.ShowCharactersNotTakenAction(charactersWithoutActions);
-//            return;
-//        }
-//
+        }
 
         this.IsExecutingActions = true;
+
+        Debug.Log("Play()");
+
+        var charactes = LevelMng.Instance.Characters;
+        foreach (var character in charactes)
+        {
+            var action = this.GetActionOfCharacter(character);
+            if (action == null)
+            {
+                ((Monster)character).DecideAndQueueAction();
+            }
+        }
+
         StartCoroutine( this.ExecuteActions() );
     }
 
@@ -101,74 +105,95 @@ public class ActionExecutor : MonoBehaviour
         return null;
     }
 
-    public bool HasActionQueued(Character character)
+    public GameAction GetActionOfCharacter(Character character)
     {
         foreach(var action in this.actions)
         {
             if (action.Character == character)
             {
-                return true;
+                return action;
             }
         }
 
-        return false;
-    } 
+        return null;
+    }
 
-    void RemovePreviousAcitonForCharacter(Character character)
+    public void PlayWithDelay()
+    {
+        this.Invoke("Play", 0.01f);
+    }
+
+    public bool HasPlayerQueuedAction()
+    {
+        return this.GetActionOfCharacter( LevelMng.Instance.Player ) != null;
+    }
+
+    void RemovePreviousAcitonForCharacterNotStarted(Character character)
     {
         for (int i = this.actions.Count - 1; i >= 0; i--)
         {
-            if (this.actions[i].Character == character)
+            var action = this.actions[i];
+            if (action.Character == character && !action.Started)
             {
+                this.ActionExecutorList.RemoveAction(action);
                 this.actions.RemoveAt(i);
-                return;
+                break;
             }
         }
     }
 
     IEnumerator ExecuteActions()
     {
-        bool actionFinished = false;
-        while(!actionFinished)
+        bool playerActionFinished = false;
+        while(!playerActionFinished)
         {
             for (int x = 0; x < 50; x++)
             {
-                for (int i = this.actions.Count - 1; i >= 0; i--) 
+                for (int i = this.actions.Count - 1; i >= 0; i--)
                 {
-                    var action = this.actions[i];
+                    GameAction action = this.actions[i];
 
                     bool hasStarted = action.Started;
 
-                    actionFinished = action.Tick();
+                    bool finished = action.Tick();
 
-                    if (!hasStarted && action.Started)
+                    if (!hasStarted && action.Started) //if has just started
                     {
-                        this.ActionExecutionStarted();
+                        this.ActionExecutionStarted(action);
                     }
 
-                    if (actionFinished)
+                    if (finished)
                     {
+                        if (action.Character is Player)
+                        {
+                            playerActionFinished = true;
+                        }
+
+                        this.ActionExecutionCompleted(action);
+
                         this.actions.RemoveAt(i);
-                        break;
                     }
+                }
+
+                if (playerActionFinished)
+                {
+                    break;
                 }
             }
             yield return null;
         }
 
         this.IsExecutingActions = false;
-
-        this.ActionExecutionComplete();
     }
 
-    GameAction SpawnGameAction(Character character, GameActionData actionData, TileBehavior target, int delay)
+    GameAction SpawnGameAction(Character character, GameActionData actionData, TileBehavior target)
     {
         var moveActionData = actionData as MoveGameActionData;
         if (moveActionData != null)
         {
             var charPos = LevelMng.Instance.GetCharacterPos(character);
             var fromTile = LevelMng.Instance.GetTileBehavior(charPos);
-            return new MoveGameAction(moveActionData, character, fromTile, target, delay);
+            return new MoveGameAction(moveActionData, character, fromTile, target);
         }
 
         var rechargeActionData = actionData as RechargeGameActionData;
@@ -199,41 +224,28 @@ public abstract class GameAction
     public int TimeLeft { get; private set; }
     public TileBehavior Target {get; private set;}
 
-    public int Delay { get; private set;}
-
     public bool Started { get; private set; }
 
-    public GameAction(GameActionData actionData, Character character, TileBehavior target, int delay = 0)
+    public GameAction(GameActionData actionData, Character character, TileBehavior target)
     {
         this.ActionData = actionData;
         this.Character = character;
         this.Target = target;
         this.TimeLeft = actionData.Length;
-
-        this.Delay = delay;
     }
 
     public virtual bool Tick()
     {
-        if (this.Delay > 0)
+        if (!this.Started)
         {
-            this.Delay--;
-            return false;
+            this.Start();
         }
 
-        if (this.Delay == 0)
+        this.TimeLeft--;
+        if (this.TimeLeft == 0)
         {
-            if (!this.Started)
-            {
-                this.Start();
-            }
-
-            this.TimeLeft--;
-            if (this.TimeLeft == 0)
-            {
-                this.Character.ActionExecuted = null;
-                return true;
-            }
+            this.Character.ActionExecuted = null;
+            return true;
         }
         return false;
     }
@@ -252,8 +264,8 @@ public class MoveGameAction : GameAction
 
     Vector3 movePerTick;
 
-    public MoveGameAction (GameActionData actionData, Character character, TileBehavior from, TileBehavior to, int delay)
-        : base (actionData, character, to, delay)
+    public MoveGameAction (GameActionData actionData, Character character, TileBehavior from, TileBehavior to)
+        : base (actionData, character, to)
     {
         this.From = from;
     }
@@ -281,6 +293,11 @@ public class MoveGameAction : GameAction
         }
 
         return arrived;
+    }
+
+    public override string ToString()
+    {
+        return string.Format("[{0} Who={1} From={2} To={3}]]", ActionData.Name, Character.Name, From, Target);
     }
 }
 

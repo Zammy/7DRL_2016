@@ -12,26 +12,22 @@ public class Monster : Character
 
     void Start()
     {
-        ActionExecutor.Instance.ActionExecutionComplete += this.OnActionExecCompleted;
+        ActionExecutor.Instance.ActionExecutionCompleted += this.OnActionExecCompleted;
 
         this.actions = new Dictionary<string, GameActionData>();
         foreach (var gameActionData in this.AvailableActions)
         {
             this.actions.Add(gameActionData.Name, gameActionData);
         }
-
-        this.DecideAndQueueAction();
     }
 
     void OnDestroy()
     {
-        ActionExecutor.Instance.ActionExecutionComplete -= this.OnActionExecCompleted;
+        ActionExecutor.Instance.ActionExecutionCompleted -= this.OnActionExecCompleted;
     }
 
-    void DecideAndQueueAction()
+    public void DecideAndQueueAction()
     {
-        return;
-
         Point playerPos = LevelMng.Instance.GetPlayerPos();
         Point selfPos = LevelMng.Instance.GetCharacterPos(this);
         if (this.Stamina < 4)
@@ -50,17 +46,24 @@ public class Monster : Character
             else
             {
                 Point[] path = LevelMng.Instance.PathFromAtoB(selfPos, playerPos);
+                Debug.LogFormat("Dog trying to walk to player from {0} to {1}", selfPos, playerPos);
                 Point toGoTo = path[0];
-                Debug.LogFormat("Dog trying to walk to player from {0} to {1} next point in path {2}", selfPos, playerPos, toGoTo);
                 ActionExecutor.Instance.EnqueueAction(this, this.actions["Walk"], LevelMng.Instance.GetTileBehavior(toGoTo));
             }
         }
     }
 
-    void OnActionExecCompleted()
+    void OnActionExecCompleted(GameAction gameAction)
     {
-        if (this.ActionExecuted != null)
+        if (gameAction.Character != this)
+        {
             return;
+        }
+
+        if (!ActionExecutor.Instance.HasPlayerQueuedAction())
+        {
+            return;
+        }
 
         this.DecideAndQueueAction();
     }

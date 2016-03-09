@@ -9,27 +9,16 @@ public class LightSource : MonoBehaviour
     public float Flicker = 0.02f;
 
     private Point lightPos;
-    private LightTarget thisLightTarget;
     private List<LightTarget> prevLitTargets = new List<LightTarget>();
-
-    void Start()
-    {
-    }
 
     public void UpdateLighting(List<LightTarget> tilesInLight)
     {
+        this.lightPos = this.transform.parent.GetComponent<TileBehavior>().Pos;
+
         foreach (var item in this.prevLitTargets)
         {
             item.LightLevel = 0;
         }
-
-        this.thisLightTarget = this.GetComponent<LightTarget>();
-        if (this.thisLightTarget == null)
-        {
-            this.thisLightTarget = this.transform.parent.GetComponent<LightTarget>();
-        }
-
-        this.lightPos = this.thisLightTarget.Pos;
 
         this.StopAllCoroutines();
         StartCoroutine(this.LightSurroundings(tilesInLight));
@@ -43,8 +32,6 @@ public class LightSource : MonoBehaviour
 
         while (true)
         {
-            this.thisLightTarget.LightLevel = 1f;
-
             foreach (LightTarget lightTarget in lightTargets)
             {
                 int range = (lightPos - lightTarget.Pos).Length;

@@ -26,11 +26,18 @@ public class LevelMng : MonoBehaviour
     //
 
     private TileBehavior[,] level;
-    private Player player;
+
+    public Player Player { get; set; }
+    public List<Character> Characters { get; set; }
 
     void Awake()
     {
         _instance = this;
+    }
+
+    void Start()
+    {
+        this.Characters = new List<Character>();
     }
 
     void OnDestroy()
@@ -47,21 +54,23 @@ public class LevelMng : MonoBehaviour
     {
         if (character is Player)
         {
-            this.player = (Player)character;
+            this.Player = (Player)character;
         }
 
         this.level[pos.X, pos.Y].Character = character;
+
+        this.Characters.Add(character);
     }
 
     public Point GetPlayerPos()
     {
-        if (!(this.player.ActionExecuted is MoveGameAction))
+        if (!(this.Player.ActionExecuted is MoveGameAction))
         {
-            return this.GetCharacterPos(this.player);
+            return this.GetCharacterPos(this.Player);
         }
         else
         {
-            return this.player.ActionExecuted.Target.Pos;
+            return this.Player.ActionExecuted.Target.Pos;
         }
     }
 
@@ -229,13 +238,20 @@ public class LevelMng : MonoBehaviour
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return string.Format("[Step ({0}) : Heuristic={1} FromStart={2} Score={3}]", this.Pos, this.Heuristic, this.FromStart, this.Score);
+        }
     }
 
     List<Step> closedList = new List<Step>();
     List<Step> openList = new List<Step>();
 
-    public Point[] PathFromAtoB(Point start, Point goal )
+    public Point[] PathFromAtoB(Point start, Point goal)
     {
+//        Debug.LogFormat("======= {0} to {1} =======", start, goal);
+
         closedList.Clear();
         openList.Clear();
 
@@ -245,12 +261,14 @@ public class LevelMng : MonoBehaviour
         while(true)
         {
             var lowestScoreStep = GetLowestScoreFromList(openList, goal);
+//            Debug.LogFormat("lowestScoreStep {0}", lowestScoreStep);
             if (lowestScoreStep == null)
             {
-                break;
+                throw new UnityException("Open list should never be empty!");
             }
             if (lowestScoreStep.Pos == goal) 
             {
+//                Debug.Log("Found goal!");
                 stepGoal = lowestScoreStep;
                 break;
             }
@@ -283,6 +301,8 @@ public class LevelMng : MonoBehaviour
                     openList.Remove( sameStep );
                 }
 
+//                Debug.Log("Adding to open list " + step.ToString());
+
                 openList.Add(step);
             }
         }
@@ -305,16 +325,15 @@ public class LevelMng : MonoBehaviour
 
         TileBehavior tileBhv = this.GetTileBehavior(p);
 
-        if (ActionExecutor.Instance.GetActionMovingToTile( tileBhv ) != null)
-        {
-            return false;
-        }
+//        if (ActionExecutor.Instance.GetActionMovingToTile( tileBhv ) != null)
+//        {
+//            return false;
+//        }
 
         if (tileBhv.Character != null)
         {
             return false;
         }
-
 
         return this.level[p.X, p.Y].Tile.IsPassable;
     }
