@@ -52,7 +52,7 @@ public struct Point
         {
             return this == (Point)obj;
         }
-        return base.Equals(obj);
+        return false;
     }
 
     public override int GetHashCode()

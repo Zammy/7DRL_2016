@@ -38,6 +38,7 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public Text ActionName;
     public Text TimeLeft;
     public Button CancelActionButton;
+    public GameObject IsHit;
 
     public Image Background;
     public Color HoverColor;
@@ -75,6 +76,10 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
         {
             this.FinishedAt = Time.time;
             this.TimeLeft.text = "done";
+            if (gameAction is AttackGameAction)
+            {
+                this.IsHit.SetActive( ((AttackGameAction) gameAction).IsHit );
+            }
 //            this.Finish(this);
             return;
         }

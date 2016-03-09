@@ -6,6 +6,7 @@ public class Monster : Character
 {
     //Set through Unity
     public int DetectionRange; //in what range monster detects 
+    public string Description;
     //
 
     Dictionary<string, GameActionData> actions;

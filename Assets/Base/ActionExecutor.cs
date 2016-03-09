@@ -135,6 +135,25 @@ public class ActionExecutor : MonoBehaviour
         return this.GetActionOfCharacter( LevelMng.Instance.Player ) != null;
     }
 
+    public float CharacterCloseTo(TileBehavior target)
+    {
+        foreach(var action in this.actions)
+        {
+            if (action is MoveGameAction)
+            {
+                if (action.Target == target)
+                {
+                    return (float)action.TimeLeft / (float)action.ActionData.Length;
+                }
+                if (((MoveGameAction)action).From == target)
+                {
+                    return 1 - ((float)action.TimeLeft / (float)action.ActionData.Length);
+                }
+            }
+        }
+        return 0f;
+    }
+
     void RemovePreviousAcitonForCharacterNotStarted(Character character)
     {
         for (int i = this.actions.Count - 1; i >= 0; i--)
@@ -331,6 +350,12 @@ public class AttackGameAction : GameAction
 {
     public readonly int Damage;
 
+    public bool IsHit
+    {
+        get;
+        private set;
+    }
+
     public AttackGameAction (GameActionData actionData, Character character, TileBehavior target)
         : base (actionData, character, target)
     {
@@ -343,32 +368,33 @@ public class AttackGameAction : GameAction
         bool hit = base.Tick();
         if (hit)
         {
-//            int damage = this.Damage;
-//            var opp = this.Target.GetComponentInChildren<Character>();
-//            if (opp != null)
-//            {
-//                if (opp.ActionExecuted != null && opp.ActionExecuted is DefendGameAction)
-//                {
-//                    damage = ((DefendGameAction)opp.ActionExecuted).DefendAgainst(this);
-//                }
-//            }
-//            else
-//            {
-//                var moveGameAction = ActionExecutor.Instance.GetActionMovingToTile(this.Target);
-//                if (moveGameAction != null)
-//                {
-//                    float percentLeftToReach = (float)moveGameAction.TimeLeft / (float)moveGameAction.ActionData.Length;
-//                    if (percentLeftToReach < Random.Range(0f, 0.5f)) 
-//                    {
-//                        opp = moveGameAction.Character;
-//                    }
-//                }
-//            }
-//
-//            if (opp != null)
-//            {
-//                opp.Health -= damage;
-//            }
+            int damage = this.Damage;
+            var opp = this.Target.Character;
+            if (opp != null)
+            {
+                if (opp.ActionExecuted != null && opp.ActionExecuted is DefendGameAction)
+                {
+                    damage = ((DefendGameAction)opp.ActionExecuted).DefendAgainst(this);
+                }
+                this.IsHit = true;
+            }
+            else
+            {
+                float howClose = ActionExecutor.Instance.CharacterCloseTo(this.Target);
+                float randomValue = UnityEngine.Random.value;
+
+                Debug.LogFormat("Tries to hit {0} < {1} ", randomValue, howClose - 0.5f);
+
+                if (randomValue < (howClose - 0.5f))
+                {
+                    this.IsHit = true;
+                }
+            }
+
+            if ( this.IsHit )
+            {
+                opp.Health -= damage;
+            }
         }
         return hit;
     }
