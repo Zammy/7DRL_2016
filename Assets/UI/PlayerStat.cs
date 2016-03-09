@@ -8,7 +8,7 @@ public class PlayerStat : MonoBehaviour
     public Text Value;
     //
 
-    public int State
+    public int Stat
     {
         set
         {

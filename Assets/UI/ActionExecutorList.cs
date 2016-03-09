@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class ActionExecutorList : MonoBehaviour 
 {
@@ -9,6 +10,12 @@ public class ActionExecutorList : MonoBehaviour
     public GameObject GameActionDisplayPrefab;
 
     public Transform Queue;
+
+    public GameObject MonsterPanelInfo;
+    public Text MonsterName;
+    public Text MonsterDescription;
+    public PlayerStat MonsterHealthStat;
+    public PlayerStat MonsterStaminaStat;
     //
 
 	public void AddAction(GameAction gameAction)
@@ -18,6 +25,8 @@ public class ActionExecutorList : MonoBehaviour
         display.GameAction = gameAction;
 //        display.Finish += this.OnGameActionFinished;
         display.Cancel += this.OnGameActionCanceled;
+        display.MouseHoverIn += this.OnMouseHoverIn;
+        display.MouseHoverOut += this.OnMouseHoverOut;
 
         displayGo.transform.SetParent(this.Queue);
         displayGo.transform.localScale = Vector3.one;
@@ -74,5 +83,40 @@ public class ActionExecutorList : MonoBehaviour
             item.transform.SetParent(this.Queue);
         }
 //        Debug.Log("=============End===================");
+    }
+
+    void OnMouseHoverIn(GameActionDisplay display)
+    {
+        display.GameAction.Target.IsHighlighted = true;
+
+        var gameAction = display.GameAction;
+        if (gameAction.Character is Player)
+        {
+            if (gameAction is AttackGameAction)
+            {
+                DisplayMonsterInfo( ((AttackGameAction)gameAction).TargetHit as Monster );
+            }
+            return;
+        }
+
+        DisplayMonsterInfo(gameAction.Character as Monster);
+    }
+
+    void OnMouseHoverOut(GameActionDisplay display)
+    {
+        display.GameAction.Target.IsHighlighted = false;
+
+        this.MonsterPanelInfo.SetActive(false);
+
+    }
+
+    void DisplayMonsterInfo(Monster monster)
+    {
+        this.MonsterPanelInfo.SetActive(true);
+        this.MonsterName.text = monster.Name;
+        this.MonsterName.color = monster.GetComponent<LightTarget>().Color;
+        this.MonsterDescription.text = monster.Description;
+        this.MonsterHealthStat.Stat = monster.Health;
+        this.MonsterStaminaStat.Stat = monster.Stamina;
     }
 }

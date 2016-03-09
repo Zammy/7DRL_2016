@@ -46,6 +46,9 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 //    public event Action<GameActionDisplay> Finish;
     public event Action<GameActionDisplay> Cancel;
+    public event Action<GameActionDisplay> MouseHoverIn;
+    public event Action<GameActionDisplay> MouseHoverOut;
+
 
     public float FinishedAt = -1f;
 
@@ -78,7 +81,7 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
             this.TimeLeft.text = "done";
             if (gameAction is AttackGameAction)
             {
-                this.IsHit.SetActive( ((AttackGameAction) gameAction).IsHit );
+                this.IsHit.SetActive( ((AttackGameAction) gameAction).TargetHit != null  );
             }
 //            this.Finish(this);
             return;
@@ -98,8 +101,9 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
     #region IPointerEnterHandler implementation
     public void OnPointerEnter(PointerEventData eventData)
     {
-        this.GameAction.Target.IsHighlighted = true;
         this.Background.color = this.HoverColor;
+
+        this.MouseHoverIn(this);
     }
     #endregion
 
@@ -107,8 +111,9 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        this.GameAction.Target.IsHighlighted = false;
         this.Background.color = Color.black;
+
+        this.MouseHoverOut(this);
     }
 
     #endregion

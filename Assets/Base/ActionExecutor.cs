@@ -350,11 +350,7 @@ public class AttackGameAction : GameAction
 {
     public readonly int Damage;
 
-    public bool IsHit
-    {
-        get;
-        private set;
-    }
+    public Character TargetHit;
 
     public AttackGameAction (GameActionData actionData, Character character, TileBehavior target)
         : base (actionData, character, target)
@@ -376,7 +372,7 @@ public class AttackGameAction : GameAction
                 {
                     damage = ((DefendGameAction)opp.ActionExecuted).DefendAgainst(this);
                 }
-                this.IsHit = true;
+                this.TargetHit = opp;
             }
             else
             {
@@ -387,11 +383,11 @@ public class AttackGameAction : GameAction
 
                 if (randomValue < (howClose - 0.5f))
                 {
-                    this.IsHit = true;
+                    this.TargetHit = opp;
                 }
             }
 
-            if ( this.IsHit )
+            if ( this.TargetHit != null)
             {
                 opp.Health -= damage;
             }

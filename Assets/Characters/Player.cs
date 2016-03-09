@@ -33,7 +33,7 @@ public class Player : Character, IPointerClickHandler
         set
         {
             base.Health = value;
-            this.HealthStat.State = value;
+            this.HealthStat.Stat = value;
         }
     }
 
@@ -46,7 +46,7 @@ public class Player : Character, IPointerClickHandler
         set
         {
             base.Stamina = value;
-            this.StaminaStat.State = value;
+            this.StaminaStat.Stat = value;
         }
     }
 
