@@ -79,15 +79,16 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
         {
             this.FinishedAt = Time.time;
             this.TimeLeft.text = "done";
-            if (gameAction is AttackGameAction)
+
+            var attack = this.gameAction.GetComponent<Attack>();
+            if (attack != null)
             {
-                this.IsHit.SetActive( ((AttackGameAction) gameAction).TargetHit != null  );
+                this.IsHit.SetActive( attack.TargetHit != null  );
             }
-//            this.Finish(this);
             return;
         }
 
-        this.TimeLeft.text = GameActionDataExt.GetLengthInSecs( this.gameAction.TimeLeft  ); 
+        this.TimeLeft.text = GameActionDataExt.GetLengthInSecs( this.gameAction.TimeLeft  ).ToString("F"); 
 
         bool canCancel = this.GameAction.Character is Player && !this.GameAction.Started;
         this.CancelActionButton.gameObject.SetActive( canCancel );

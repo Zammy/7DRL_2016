@@ -11,13 +11,15 @@ public class Glue : MonoBehaviour
     public GameObject PlayerPrefab;
     public GameObject DogPrefab;
 
-    public RadialActionMenu ActionMenu;
+    public ActionMenu ActionMenu;
     public InputManager InputManager;
 
     public int Seed;
 
-    public PlayerStat HealthStat;
-    public PlayerStat StaminaStat;
+    public StatInt HealthStat;
+    public StatInt StaminaStat;
+
+    public ItemData[] PlayerTestBuild;
     //
 
 	void Start () 
@@ -41,9 +43,19 @@ public class Glue : MonoBehaviour
 
         var playerGo = (GameObject)Instantiate(this.PlayerPrefab);
         this.MainCamera.transform.SetParent(playerGo.transform);
+
         var player = playerGo.GetComponent<Player>();
+
+        ItemData[] build = LevelSettings.PlayerBuild;
+        if (build == null)
+        {
+            build = PlayerTestBuild;
+        }
+        player.Build = build;
+
         this.LeveMng.AddCharacterOnPos(player as Character, dungeon.PlayerStartPos);
         playerGo.transform.localPosition = Vector3.zero;
+
         player.ActionMenu = this.ActionMenu;
         player.HealthStat = this.HealthStat;
         player.StaminaStat = this.StaminaStat;

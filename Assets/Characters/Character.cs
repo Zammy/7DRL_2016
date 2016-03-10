@@ -7,8 +7,6 @@ public class Character : MonoBehaviour
     //Set through Unity
     public string Name;
 
-
-    public GameActionData[] AvailableActions;
     public int StartHealth;
     public int StartStamina;
     //
@@ -52,9 +50,20 @@ public class Character : MonoBehaviour
         }
     }
 
-    void Awake()
+    public Point Pos
     {
-
+        get
+        {
+            if (this.ActionExecuted != null)
+            {
+                var move = this.ActionExecuted.GetComponent<Move>();
+                if (move != null)
+                {
+                    return move.To.Pos;
+                }
+            }
+            return this.GetTileBhv().Pos;
+        }
     }
 
     protected virtual void Start()
@@ -75,6 +84,11 @@ public class Character : MonoBehaviour
 //            Debug.Log(s);
 //        }
 //        Debug.Log("==========================");
+    }
+
+    public TileBehavior GetTileBhv()
+    {
+        return this.transform.parent.GetComponent<TileBehavior>();
     }
 
     public virtual void LocationChanged() {}

@@ -7,6 +7,7 @@ public class Monster : Character
     //Set through Unity
     public int DetectionRange; //in what range monster detects 
     public string Description;
+    public GameActionData[] AvailableActions;
     //
 
     Dictionary<string, GameActionData> actions;
@@ -52,7 +53,7 @@ public class Monster : Character
                 Point[] path = LevelMng.Instance.PathFromAtoB(selfPos, playerPos);
                 Debug.LogFormat("Dog trying to walk to player from {0} to {1}", selfPos, playerPos);
                 Point toGoTo = path[0];
-                ActionExecutor.Instance.EnqueueAction(this, this.actions["Walk"], LevelMng.Instance.GetTileBehavior(toGoTo));
+                ActionExecutor.Instance.EnqueueAction(this, this.actions["Run"], LevelMng.Instance.GetTileBehavior(toGoTo));
             }
         }
     }

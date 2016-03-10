@@ -54,14 +54,20 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         }
     }
 
+    bool isHighlighted = false;
     public bool IsHighlighted
     {
         get
         {
-            return this.Background.GetComponent<SpriteRenderer>().color == this.HighlightColor;
+            return isHighlighted;
         }
         set
         {
+            if (this.Tile.Type != TileType.Ground)
+                return;
+
+            isHighlighted = value;
+
             this.LightTarget.enabled = !value;
             var sprite = this.Background.GetComponent<SpriteRenderer>();
             if (value)
@@ -71,6 +77,23 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
             else
             {
                 sprite.color = Color.black;
+            }
+        }
+    }
+
+    public bool IsPatternHighlighted
+    {
+        set
+        {
+            this.LightTarget.enabled = !value;
+            var sprite = this.Background.GetComponent<SpriteRenderer>();
+            if (value)
+            {
+                sprite.color = Color.red;
+            }
+            else
+            {
+                this.IsHighlighted = this.IsHighlighted;
             }
         }
     }

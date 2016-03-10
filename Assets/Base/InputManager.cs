@@ -104,12 +104,31 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredIn(TileBehavior tileHovered)
     {
-        return;
-
         if (this.selectedAction)
         {
+            var attackCmp = this.selectedAction.GetComponent<AttackComponent>();
+            if (attackCmp != null)
+            {
+                if (attackCmp.Pattern == AttackPattern.ThreeAround)
+                {
+                    if (highlightedTiles.Contains(tileHovered))
+                    {
+                        tileHovered.IsPatternHighlighted = true;
+
+                        foreach (var otherTile in highlightedTiles)
+                        {
+                            if (otherTile.Pos.X != tileHovered.Pos.X && otherTile.Pos.Y != tileHovered.Pos.Y)
+                            {
+                                otherTile.IsPatternHighlighted = true;
+                            }
+                        }
+                    }
+                }
+            }
             return;
         }
+
+        return;
 
         this.ClearHighlightedTiles();
 
@@ -144,6 +163,12 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredOut(TileBehavior tileHovered)
     {
+        foreach (var tile in highlightedTiles)
+        {
+            tile.IsPatternHighlighted = false;
+        }
+//        tileHovered.IsPatternHighlighted = false;
+
         return;
 
         if (this.selectedAction)

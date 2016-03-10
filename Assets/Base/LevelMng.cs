@@ -64,14 +64,7 @@ public class LevelMng : MonoBehaviour
 
     public Point GetPlayerPos()
     {
-        if (!(this.Player.ActionExecuted is MoveGameAction))
-        {
-            return this.GetCharacterPos(this.Player);
-        }
-        else
-        {
-            return this.Player.ActionExecuted.Target.Pos;
-        }
+        return this.Player.Pos;
     }
 
     void AddTilesTo(Tile[,] tiles, Transform parent)

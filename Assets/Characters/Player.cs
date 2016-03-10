@@ -9,16 +9,22 @@ public class Player : Character, IPointerClickHandler
     public LightSource Torch;
     //
 
-    List<TileBehavior> tilesInSight = new List<TileBehavior>();
-    List<Monster> monstersInSight = new List<Monster>();
-
-    public PlayerStat HealthStat
+    public ItemData[] Build
     {
         get;
         set;
     }
 
-    public PlayerStat StaminaStat
+    List<TileBehavior> tilesInSight = new List<TileBehavior>();
+    List<Monster> monstersInSight = new List<Monster>();
+
+    public StatInt HealthStat
+    {
+        get;
+        set;
+    }
+
+    public StatInt StaminaStat
     {
         get;
         set;
@@ -33,7 +39,7 @@ public class Player : Character, IPointerClickHandler
         set
         {
             base.Health = value;
-            this.HealthStat.Stat = value;
+            this.HealthStat.Value = value;
         }
     }
 
@@ -46,12 +52,12 @@ public class Player : Character, IPointerClickHandler
         set
         {
             base.Stamina = value;
-            this.StaminaStat.Stat = value;
+            this.StaminaStat.Value = value;
         }
     }
 
-    RadialActionMenu actionMenu;
-    public RadialActionMenu ActionMenu
+    ActionMenu actionMenu;
+    public ActionMenu ActionMenu
     {
         get
         {
@@ -60,11 +66,11 @@ public class Player : Character, IPointerClickHandler
         set
         {
             this.actionMenu = value;
-            this.actionMenu.LoadActions(this.AvailableActions);
+            this.actionMenu.LoadBuild(this.Build);
         }
     }
 
-    public MoveGameActionData DefaultMoveAction
+    public GameActionData DefaultMoveAction
     {
         get;
         private set;
@@ -90,13 +96,13 @@ public class Player : Character, IPointerClickHandler
 
         this.UpdateLightAndSight();
 
-        foreach (var actionData in this.AvailableActions)
+        foreach (var item in this.Build)
         {
-            if (actionData is MoveGameActionData)
+            foreach(var action in item.Actions)
             {
-                if (actionData.Name == "Walk")
+                if (action.Name == "Walk")
                 {
-                    this.DefaultMoveAction = actionData as MoveGameActionData;
+                    this.DefaultMoveAction = action;
                     break;
                 }
             }

@@ -14,8 +14,8 @@ public class ActionExecutorList : MonoBehaviour
     public GameObject MonsterPanelInfo;
     public Text MonsterName;
     public Text MonsterDescription;
-    public PlayerStat MonsterHealthStat;
-    public PlayerStat MonsterStaminaStat;
+    public StatInt MonsterHealthStat;
+    public StatInt MonsterStaminaStat;
     //
 
 	public void AddAction(GameAction gameAction)
@@ -76,26 +76,24 @@ public class ActionExecutorList : MonoBehaviour
 
         displays.Reverse();
 
-//        Debug.Log("============Start===================");
         foreach (var item in displays)
         {
-//            Debug.LogFormat("{0} TimeLeft {1}", item.GameAction.Character.Name, item.GameAction.TimeLeft);
             item.transform.SetParent(this.Queue);
         }
-//        Debug.Log("=============End===================");
     }
 
     void OnMouseHoverIn(GameActionDisplay display)
     {
-        display.GameAction.Target.IsHighlighted = true;
+//        display.GameAction.Target.IsHighlighted = true;
+        
 
         var gameAction = display.GameAction;
         if (gameAction.Character is Player)
         {
-            if (gameAction is AttackGameAction)
-            {
-                DisplayMonsterInfo( ((AttackGameAction)gameAction).TargetHit as Monster );
-            }
+//            if (gameAction is AttackGameAction)
+//            {
+//                DisplayMonsterInfo( ((AttackGameAction)gameAction).TargetHit as Monster );
+//            }
             return;
         }
 
@@ -104,7 +102,7 @@ public class ActionExecutorList : MonoBehaviour
 
     void OnMouseHoverOut(GameActionDisplay display)
     {
-        display.GameAction.Target.IsHighlighted = false;
+//        display.GameAction.Target.IsHighlighted = false;
 
         this.MonsterPanelInfo.SetActive(false);
 
@@ -116,7 +114,7 @@ public class ActionExecutorList : MonoBehaviour
         this.MonsterName.text = monster.Name;
         this.MonsterName.color = monster.GetComponent<LightTarget>().Color;
         this.MonsterDescription.text = monster.Description;
-        this.MonsterHealthStat.Stat = monster.Health;
-        this.MonsterStaminaStat.Stat = monster.Stamina;
+        this.MonsterHealthStat.Value = monster.Health;
+        this.MonsterStaminaStat.Value = monster.Stamina;
     }
 }
