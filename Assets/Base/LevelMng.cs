@@ -62,11 +62,6 @@ public class LevelMng : MonoBehaviour
         this.Characters.Add(character);
     }
 
-    public Point GetPlayerPos()
-    {
-        return this.Player.Pos;
-    }
-
     public void KillCharacter(Character character)
     {
         this.Characters.Remove(character);
@@ -143,11 +138,6 @@ public class LevelMng : MonoBehaviour
         }
     }
 
-    public TileBehavior GetTileUnderneathCharacter(Character character)
-    {
-        return character.transform.parent.GetComponent<TileBehavior>();
-    }
-
     public TileBehavior[] TilesAroundInRange(Point pos, int range)
     {
         var tiles = new List<TileBehavior>();
@@ -173,7 +163,7 @@ public class LevelMng : MonoBehaviour
 
     public Point GetCharacterPos(Character character)
     {
-        var tileBhv = this.GetTileUnderneathCharacter(character);
+        var tileBhv = character.GetTileBhv();
         if (tileBhv == null)
         {
             throw new UnityException(" Character not on any tile! ");

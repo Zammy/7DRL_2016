@@ -7,22 +7,17 @@ public class Monster : Character
     //Set through Unity
     public int DetectionRange; //in what range monster detects 
     public string Description;
-    public GameActionData[] AvailableActions;
+    public GameObject AIBehaviors;
+
     //
 
-    Dictionary<string, GameActionData> actions;
+    AIBehavior activeBehavior;
 
     protected override void Start()
     {
         base.Start();
 
         ActionExecutor.Instance.ActionExecutionCompleted += this.OnActionExecCompleted;
-
-        this.actions = new Dictionary<string, GameActionData>();
-        foreach (var gameActionData in this.AvailableActions)
-        {
-            this.actions.Add(gameActionData.Name, gameActionData);
-        }
     }
 
     void OnDestroy()
@@ -32,30 +27,30 @@ public class Monster : Character
 
     public void DecideAndQueueAction()
     {
-        Point playerPos = LevelMng.Instance.GetPlayerPos();
-        Point selfPos = LevelMng.Instance.GetCharacterPos(this);
-        if (this.Stamina < 4)
-        {
-            ActionExecutor.Instance.EnqueueAction(this, this.actions["Bark"], LevelMng.Instance.GetTileBehavior(playerPos));
-            return;
-        }
+//        if (activeBehavior == null || activeBehavior.ShouldDeactivate())
+//        {
+            foreach (var beh in AIBehaviors.GetComponents<AIBehavior>())
+            {
+                if (beh == activeBehavior)
+                {
+                    if (beh.ShouldDeactivate())
+                        continue;
+                    else
+                        break;
+                }
 
-        Point diff = playerPos - selfPos;
-        if (diff.Length <= this.DetectionRange)
-        {
-            //attack player
-            if (diff.Length == 1)
-            {
-                ActionExecutor.Instance.EnqueueAction(this, this.actions["Bite"], LevelMng.Instance.GetTileBehavior(playerPos));
+                if (beh.ShouldActivate())
+                {
+                    Debug.LogFormat("{0} {1} activated", this.Name, beh.GetType().Name);
+                    activeBehavior = beh;
+                    break;
+                }
             }
-            else
-            {
-                Point[] path = LevelMng.Instance.PathFromAtoB(selfPos, playerPos);
-//                Debug.LogFormat("Dog trying to walk to player from {0} to {1}", selfPos, playerPos);
-                Point toGoTo = path[0];
-                ActionExecutor.Instance.EnqueueAction(this, this.actions["Run"], LevelMng.Instance.GetTileBehavior(toGoTo));
-            }
-        }
+//        }
+
+        Debug.LogFormat("{0} {1} deciding", this.Name, activeBehavior.GetType().Name);
+
+        activeBehavior.DecideAndQueueAction();
     }
 
     void OnActionExecCompleted(GameAction gameAction)

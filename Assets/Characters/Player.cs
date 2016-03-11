@@ -130,7 +130,7 @@ public class Player : Character, IPointerClickHandler
 
     public void UpdateLightAndSight()
     {
-        this.tilesInSight = LevelMng.Instance.TilesAroundInSight(LevelMng.Instance.GetPlayerPos(), this.Torch.Range);
+        this.tilesInSight = LevelMng.Instance.TilesAroundInSight(LevelMng.Instance.Player.Pos, this.Torch.Range);
 
         var lightTargets = new List<LightTarget>();
         lightTargets.Add(this.GetComponent<LightTarget>());
@@ -149,5 +149,11 @@ public class Player : Character, IPointerClickHandler
                 this.monstersInSight.Add(tile.Character as Monster);
             }
         }
+    }
+
+    public int GetAttackRange()
+    {
+        //checks player inventory and returns safe range depending on items
+        return 1;
     }
 }

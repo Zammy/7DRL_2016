@@ -46,7 +46,7 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            Point origin = this.LevelMng.GetPlayerPos();
+            Point origin = LevelMng.Instance.Player.Pos;
             Point destination = new Point(origin);
             destination.X -= 1;
             this.CheckIfPlayerCanMoveToTileAndQueue(destination);
@@ -54,7 +54,7 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
-            Point origin = this.LevelMng.GetPlayerPos();
+            Point origin = LevelMng.Instance.Player.Pos;
             Point destination = new Point(origin);
             destination.Y += 1;
             this.CheckIfPlayerCanMoveToTileAndQueue(destination);
@@ -62,7 +62,7 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
         {
-            Point origin = this.LevelMng.GetPlayerPos();
+            Point origin = LevelMng.Instance.Player.Pos;
             Point destination = new Point(origin);
             destination.X += 1;
             this.CheckIfPlayerCanMoveToTileAndQueue(destination);
@@ -70,7 +70,7 @@ public class InputManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
-            Point origin = this.LevelMng.GetPlayerPos();
+            Point origin = LevelMng.Instance.Player.Pos;
             Point destination = new Point(origin);
             destination.Y -= 1;
             this.CheckIfPlayerCanMoveToTileAndQueue(destination);
@@ -136,7 +136,7 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        Point playerPos = this.LevelMng.GetPlayerPos();
+        Point playerPos = this.LevelMng.Player.Pos;
 
         Point[] path = this.LevelMng.PathFromAtoB(playerPos, tileHovered.Pos);
 
@@ -177,7 +177,7 @@ public class InputManager : MonoBehaviour
         this.selectedAction = actionData;
 
         int range = actionData.Range;
-        Point playerPos = this.LevelMng.GetPlayerPos();
+        Point playerPos = this.LevelMng.Player.Pos;
         TileBehavior[] tilesInRange = this.LevelMng.TilesAroundInRange(playerPos, range);
         this.HighlightTiles(tilesInRange);
     }
@@ -217,7 +217,7 @@ public class InputManager : MonoBehaviour
     {
         this.moveQueue.Clear();
 
-        Point playerPos = this.LevelMng.GetPlayerPos();
+        Point playerPos = this.Player.Pos;
 
         Point[] path = this.LevelMng.PathFromAtoB(playerPos, destination);
 

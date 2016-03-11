@@ -3,7 +3,10 @@
 public enum AttackPattern
 {
     One,
-    ThreeAround
+    ThreeAround,
+    TwoInARow,
+    ThreeInARow,
+    AllAround
 }
 
 [CreateAssetMenuAttribute(fileName="ActionComponent", menuName="Component/Attack")]
