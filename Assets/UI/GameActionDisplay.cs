@@ -12,23 +12,12 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
         #region IComparer implementation
         public int Compare(GameActionDisplay x, GameActionDisplay y)
         {
-            if (x.GameAction.TimeLeft == 0 && y.GameAction.TimeLeft == 0)
-            {
-                int result =  (int) (x.FinishedAt - y.FinishedAt);
-                if (result > 0)
-                    return 1;
-                else if (result == 0)
-                    return 0;
-                else
-                    return -1;
-            }
             int diff = x.GameAction.TimeLeft - y.GameAction.TimeLeft;
-            if (diff > 0)
-                return 1;
-            else if (diff == 0)
-                return 0;
-            else
-                return -1;
+            if (diff == 0)
+            {
+                return x.GameAction.TimeFinished - y.GameAction.TimeFinished;
+            }
+            return diff;
         }
         #endregion
     }
@@ -36,7 +25,12 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
     //Set through Unity
     public Text CharacterName;
     public Text ActionName;
+
+    public Text TimeLeftLabel;
+    public Text TimeFinishedLabel;
     public Text TimeLeft;
+
+
     public GameObject IsHit;
 
     public Image Background;
@@ -46,8 +40,6 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public event Action<GameActionDisplay> MouseHoverIn;
     public event Action<GameActionDisplay> MouseHoverOut;
 
-
-    public float FinishedAt = -1f;
 
     GameAction gameAction;
     public GameAction GameAction
@@ -69,13 +61,14 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
 	void Update ()
     {
-        if (this.gameAction == null || this.FinishedAt > 0f)
-            return;        
+        if (this.gameAction == null && this.TimeFinishedLabel.gameObject.activeSelf)
+            return;
 
         if (this.gameAction.TimeLeft == 0)
         {
-            this.FinishedAt = Time.time;
-            this.TimeLeft.text = "done";
+            this.TimeLeftLabel.gameObject.SetActive(false);
+            this.TimeFinishedLabel.gameObject.SetActive(true);
+            this.TimeLeft.text = GameActionDataExt.GetLengthInSecs( this.gameAction.TimeFinished ).ToString("F");
 
             var attack = this.gameAction.GetComponent<Attack>();
             if (attack != null)

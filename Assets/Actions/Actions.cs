@@ -9,6 +9,9 @@ public class GameAction
 
     public bool Started { get; private set; }
 
+    public int TimeFinished { get; private set; }
+
+
     List<GameActionComponent> components = new List<GameActionComponent>();
 
     public GameAction(GameActionData actionData, Character character, TileBehavior[] targets)
@@ -71,6 +74,7 @@ public class GameAction
 
         if (this.TimeLeft == 0)
         {
+            this.TimeFinished = ActionExecutor.Instance.GameTime;
             this.Character.ActionExecuted = null;
             return true;
         }
