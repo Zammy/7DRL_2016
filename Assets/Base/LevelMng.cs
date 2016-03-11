@@ -67,6 +67,15 @@ public class LevelMng : MonoBehaviour
         return this.Player.Pos;
     }
 
+    public void KillCharacter(Character character)
+    {
+        this.Characters.Remove(character);
+        character.GetTileBhv().Character = null;
+        Destroy(character.gameObject);
+
+        ActionExecutor.Instance.RemoveAllActionsOfCharacter(character);
+    }
+
     void AddTilesTo(Tile[,] tiles, Transform parent)
     {
         this.level = new TileBehavior[tiles.GetLength(0), tiles.GetLength(1)];

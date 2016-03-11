@@ -21,6 +21,11 @@ public class Character : MonoBehaviour
         set
         {
             this.health = value;
+
+            if (this.health <= 0)
+            {
+                StartCoroutine( this.Die() );
+            }
         }
     }
 
@@ -92,4 +97,28 @@ public class Character : MonoBehaviour
     }
 
     public virtual void LocationChanged() {}
+
+    IEnumerator Die()
+    {
+        var lightTarget = this.GetComponent<LightTarget>();
+        lightTarget.ShouldBeLit = false;
+
+        var sprite = this.GetComponent<SpriteRenderer>();
+        Vector3 scale = Vector3.one;
+        Color color = Color.gray;
+
+        for (int i = 0; i < 60; i++)
+        {
+            scale.x += 0.02f;
+            scale.y += 0.02f;
+            this.transform.localScale = scale;
+
+            color.a -= 0.01666f;
+            sprite.color = color;
+
+            yield return null;
+        }
+
+        LevelMng.Instance.KillCharacter(this);
+    }
 }

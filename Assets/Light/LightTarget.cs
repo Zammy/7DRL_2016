@@ -7,7 +7,11 @@ public class LightTarget : MonoBehaviour
     public Color Color;
     public SpriteRenderer Sprite;
     public bool ShouldFlicker;
+
+    public bool ShouldBeLit { get; set; }
     //
+
+    public float LightLevel;
 
     public Point Pos
     {
@@ -22,10 +26,10 @@ public class LightTarget : MonoBehaviour
         }
     }
 
-    public float LightLevel;
 
     void Start()
     {
+        this.ShouldBeLit = true;
         this.LightLevel = 0f;
         StartCoroutine ( this.DoLight(this.Sprite, this.Color) );
     }
@@ -40,6 +44,12 @@ public class LightTarget : MonoBehaviour
         var wait = new WaitForSeconds(0.25f);
         while (true)
         {
+            if (!this.ShouldBeLit)
+            {
+                yield return null;
+                continue;
+            }
+
             v = Mathf.Lerp(0, 1, this.LightLevel);
             
             sprite.color = ColorManipulator.ColorFromHSV(h, s, v);

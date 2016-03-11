@@ -73,7 +73,7 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
             var attack = this.gameAction.GetComponent<Attack>();
             if (attack != null)
             {
-                this.IsHit.SetActive( attack.TargetHit != null  );
+                this.IsHit.SetActive( attack.TargetsHit.Count > 0 );
             }
             return;
         }

@@ -97,12 +97,14 @@ public class ActionExecutorList : MonoBehaviour
         if (gameAction.Character is Player)
         {   
             var attack = gameAction.GetComponent<Attack>();
-            if (attack != null && attack.TargetHit != null)
+            if (attack != null 
+                && attack.TargetsHit.Count == 1 
+                && attack.TargetsHit[0] != null)
             {
-                this.MonsterInfo.ShowMonsterInfo( attack.TargetHit as Monster );
+                this.MonsterInfo.ShowMonsterInfo( attack.TargetsHit[0] as Monster );
             }
         }
-        else
+        else if (gameAction.Character != null)
         {
             this.MonsterInfo.ShowMonsterInfo(gameAction.Character as Monster);
         }

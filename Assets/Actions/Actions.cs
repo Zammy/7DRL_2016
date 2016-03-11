@@ -202,7 +202,7 @@ public class Attack : GameActionComponent
     public readonly int Damage;
     public readonly TileBehavior[] Targets;
 
-    public Character TargetHit {get;set;}
+    public List<Character> TargetsHit {get;set;}
 
     TileBehavior attackedFrom;
 
@@ -211,6 +211,8 @@ public class Attack : GameActionComponent
     {
         this.Damage = attackCmp.Damage;
         this.Targets = targets;
+
+        this.TargetsHit = new List<Character>();
     }
 
     public override void Start()
@@ -218,17 +220,19 @@ public class Attack : GameActionComponent
         this.attackedFrom = owner.Character.GetTileBhv();
     }
 
-    public override void Tick(bool hit)
+    public override void Tick(bool done)
     {
-        if (!hit)
+        if (!done)
         {
             return;
         }
 
         foreach (var targetTile in Targets)
         {
+            targetTile.FlashAttack();
+
             int damage = this.Damage;
-            var opp = targetTile.Character;
+            Character opp = targetTile.Character;
             if (opp != null)
             {
                 //TODO implement defend
@@ -236,24 +240,25 @@ public class Attack : GameActionComponent
 //                {
 //                    damage = ((DefendGameAction)opp.ActionExecuted).DefendAgainst(this);
 //                }
-                this.TargetHit = opp;
             }
             else
             {
-                float howClose = ActionExecutor.Instance.CharacterCloseTo(targetTile);
+                float howClose;
+                ActionExecutor.Instance.CharacterCloseTo(targetTile, out opp, out howClose);
                 float randomValue = UnityEngine.Random.value;
 
-                Debug.LogFormat("Tries to hit {0} < {1} ", randomValue, howClose - 0.5f);
-
-                if (randomValue < (howClose - 0.5f))
+//                Debug.LogFormat("Tries to hit {0} < {1} ", randomValue, howClose - 0.5f);
+                if (opp != null
+                    && randomValue > (howClose - 0.5f))
                 {
-                    this.TargetHit = opp;
+                    opp = null;
                 }
             }
 
-            if ( this.TargetHit != null)
+            if ( opp != null)
             {
-                this.TargetHit.Health -= damage;
+                opp.Health -= damage;
+                this.TargetsHit.Add(opp);
             }
         }
     }

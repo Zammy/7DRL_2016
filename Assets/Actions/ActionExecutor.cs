@@ -153,24 +153,39 @@ public class ActionExecutor : MonoBehaviour
         return false;
     }
 
-    public float CharacterCloseTo(TileBehavior target)
+    public void CharacterCloseTo(TileBehavior target, out Character character, out float howClose)
     {
+        howClose = 0f;
+        character = null;
+
         foreach(var action in this.actions)
         {
             var move = action.GetComponent<Move>();
-            if (move != null)
+            if (move == null)
+                continue;
+
+            if (move.To == target)
             {
-                if (move.To == target)
-                {
-                    return (float)action.TimeLeft / (float)action.ActionData.Length;
-                }
-                if (move.From == target)
-                {
-                    return 1 - ((float)action.TimeLeft / (float)action.ActionData.Length);
-                } 
+                howClose = (float)action.TimeLeft / (float)action.ActionData.Length;
+                character = action.Character;
+            }
+            if (move.From == target)
+            {
+                howClose = 1f - ((float)action.TimeLeft / (float)action.ActionData.Length);
+                character = action.Character;
             }
         }
-        return 0f;
+    }
+
+    public void RemoveAllActionsOfCharacter(Character character)
+    {
+        for (int i = this.actions.Count - 1; i >= 0; i--)
+        {
+            if (this.actions[i].Character == character)
+            {
+                this.actions.RemoveAt(i);
+            }
+        }
     }
 
     IEnumerator ExecuteActions()

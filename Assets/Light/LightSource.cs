@@ -34,6 +34,9 @@ public class LightSource : MonoBehaviour
         {
             foreach (LightTarget lightTarget in lightTargets)
             {
+                if (lightTarget == null)
+                    continue;
+
                 int range = (lightPos - lightTarget.Pos).Length;
                 float lightLevel = ( 1f - (float)range / (float)this.Range );
                 if (lightTarget.ShouldFlicker)

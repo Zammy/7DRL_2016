@@ -73,7 +73,6 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
 
             isHighlighted = value;
 
-            this.LightTarget.enabled = !value;
             var sprite = this.Background.GetComponent<SpriteRenderer>();
             if (value)
             {
@@ -130,6 +129,11 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         }
     }
 
+    public void FlashAttack()
+    {
+        StartCoroutine( this.Flash(Color.red, Color.black ) );
+    }
+
     GameObject SpawnArrowTo(TileBehavior tile)
     {
         Quaternion rotation = Quaternion.identity;
@@ -153,6 +157,33 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         this.arrows.Add(arrowGo);
 
         return arrowGo;
+    }
+
+    IEnumerator Flash(Color flashColor, Color prevColor)
+    {
+        const int frames = 12;
+
+        this.GetComponent<LightTarget>().ShouldBeLit = false;
+
+        flashColor.a = 0f;
+        var sprite = this.Background.GetComponent<SpriteRenderer>();
+        for (int i = 0; i < frames; i++)
+        {
+            flashColor.a += 1/(float)frames;
+            sprite.color = flashColor;
+            yield return null;
+        }
+
+        for (int i = 0; i < frames; i++)
+        {
+            flashColor.a -= 1/(float)frames;
+            sprite.color = flashColor;
+            yield return null;
+        }
+
+        this.GetComponent<LightTarget>().ShouldBeLit = true;
+
+        sprite.color = prevColor;
     }
 
     #region IPointerClickHandler implementation
