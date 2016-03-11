@@ -33,7 +33,12 @@ public class ActionExecutor : MonoBehaviour
 
     public bool EnqueueAction(Character character, GameActionData gameActionData, TileBehavior target)
     {
-        GameAction gameAction =  new GameAction(gameActionData, character, new TileBehavior[]{target});
+        return EnqueueAction(character, gameActionData, new TileBehavior[] { target });
+    }
+
+    public bool EnqueueAction(Character character, GameActionData gameActionData, TileBehavior[] targets)
+    {
+        GameAction gameAction =  new GameAction(gameActionData, character, targets);
 
         //check if move to not valid target
 //        var moveGameAction = gameAction as MoveGameAction;
@@ -83,8 +88,6 @@ public class ActionExecutor : MonoBehaviour
         }
 
         this.IsExecutingActions = true;
-
-        Debug.Log("Play()");
 
         var charactes = LevelMng.Instance.Characters;
         foreach (var character in charactes)

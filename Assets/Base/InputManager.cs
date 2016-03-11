@@ -17,6 +17,7 @@ public class InputManager : MonoBehaviour
     }
 
     List<TileBehavior> highlightedTiles = new List<TileBehavior>();
+    List<TileBehavior> targetTiles = new List<TileBehavior>();
     GameActionData selectedAction;
 
     TileBehavior prevTileClicked;
@@ -94,7 +95,7 @@ public class InputManager : MonoBehaviour
 
         if (highlightedTiles.Contains(tileClicked))
         {
-            this.ActionExecutor.EnqueueAction( this.Player, this.selectedAction, tileClicked );
+            this.ActionExecutor.EnqueueAction( this.Player, this.selectedAction, this.targetTiles.ToArray() );
         }
 
         this.Player.ActionMenu.IsVisible = false;
@@ -104,27 +105,9 @@ public class InputManager : MonoBehaviour
 
     public void OnTileHoveredIn(TileBehavior tileHovered)
     {
-        if (this.selectedAction)
+        if (this.selectedAction && this.highlightedTiles.Contains(tileHovered))
         {
-            var attackCmp = this.selectedAction.GetComponent<AttackComponent>();
-            if (attackCmp != null)
-            {
-                if (attackCmp.Pattern == AttackPattern.ThreeAround)
-                {
-                    if (highlightedTiles.Contains(tileHovered))
-                    {
-                        tileHovered.IsPatternHighlighted = true;
-
-                        foreach (var otherTile in highlightedTiles)
-                        {
-                            if (otherTile.Pos.X != tileHovered.Pos.X && otherTile.Pos.Y != tileHovered.Pos.Y)
-                            {
-                                otherTile.IsPatternHighlighted = true;
-                            }
-                        }
-                    }
-                }
-            }
+            this.HighlightTargetTiles(tileHovered);
             return;
         }
 
@@ -167,7 +150,6 @@ public class InputManager : MonoBehaviour
         {
             tile.IsPatternHighlighted = false;
         }
-//        tileHovered.IsPatternHighlighted = false;
 
         return;
 
@@ -275,5 +257,29 @@ public class InputManager : MonoBehaviour
         Point nextDest = this.moveQueue[0];
         this.moveQueue.RemoveAt(0);
         this.CheckIfPlayerCanMoveToTileAndQueue(nextDest);
+    }
+
+    void HighlightTargetTiles(TileBehavior tileHovered)
+    {
+        this.targetTiles.Clear();
+
+        targetTiles.Add(tileHovered);
+        tileHovered.IsPatternHighlighted = true;
+
+        var attack = this.selectedAction.GetComponent<AttackComponent>();
+        if (attack != null
+            && attack.Pattern == AttackPattern.ThreeAround 
+            && highlightedTiles.Contains(tileHovered))
+        {
+
+            foreach (var otherTile in highlightedTiles)
+            {
+                if (otherTile.Pos.X != tileHovered.Pos.X && otherTile.Pos.Y != tileHovered.Pos.Y)
+                {
+                    targetTiles.Add(otherTile);
+                    otherTile.IsPatternHighlighted = true;
+                }
+            }
+        }
     }
 }

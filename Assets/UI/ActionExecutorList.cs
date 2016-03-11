@@ -84,28 +84,30 @@ public class ActionExecutorList : MonoBehaviour
 
     void OnMouseHoverIn(GameActionDisplay display)
     {
-//        display.GameAction.Target.IsHighlighted = true;
-        
-
         var gameAction = display.GameAction;
-        if (gameAction.Character is Player)
-        {
-//            if (gameAction is AttackGameAction)
-//            {
-//                DisplayMonsterInfo( ((AttackGameAction)gameAction).TargetHit as Monster );
-//            }
-            return;
-        }
 
-        DisplayMonsterInfo(gameAction.Character as Monster);
+        gameAction.Display(true);
+
+        if (gameAction.Character is Player)
+        {   
+            var attack = gameAction.GetComponent<Attack>();
+            if (attack != null && attack.TargetHit != null)
+            {
+                DisplayMonsterInfo( attack.TargetHit as Monster );
+            }
+        }
+        else
+        {
+            DisplayMonsterInfo(gameAction.Character as Monster);
+        }
     }
 
     void OnMouseHoverOut(GameActionDisplay display)
     {
-//        display.GameAction.Target.IsHighlighted = false;
+        var gameAction = display.GameAction;
+        gameAction.Display(false);
 
         this.MonsterPanelInfo.SetActive(false);
-
     }
 
     void DisplayMonsterInfo(Monster monster)

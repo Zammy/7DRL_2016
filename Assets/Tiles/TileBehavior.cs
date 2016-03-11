@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.EventSystems;
 using System;
+using System.Collections.Generic;
 
 public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
@@ -11,11 +12,15 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
 
     public Color HighlightColor;
     public LightTarget LightTarget;
+
+    public GameObject ArrowPrefab;
     //
 
     public Action<TileBehavior> Clicked;
     public Action<TileBehavior> HoverIn;
     public Action<TileBehavior> HoverOut;
+
+    private List<GameObject> arrows = new List<GameObject>();
 
     public Tile Tile
     {
@@ -98,8 +103,56 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         }
     }
 
-    void Start()
+    public void ShowHintMovementTo(TileBehavior to)
     {
+        var arrowGo = SpawnArrowTo( to );
+        var color = this.HighlightColor;
+        color.a = 0.75f;
+        arrowGo.GetComponent<SpriteRenderer>().color = color;
+    }
+
+    public void ShowHintAttackTo(TileBehavior[] targets)
+    {
+        foreach (var target in targets)
+        {
+            var arrowGo = SpawnArrowTo( target );
+            var color = Color.red;
+            color.a = 0.75f;
+            arrowGo.GetComponent<SpriteRenderer>().color = color;
+        }
+    }
+
+    public void HideHints()
+    {
+        foreach (var arrow in arrows)
+        {
+            Destroy(arrow);
+        }
+    }
+
+    GameObject SpawnArrowTo(TileBehavior tile)
+    {
+        Quaternion rotation = Quaternion.identity;
+        Point diff = tile.Pos - this.Pos;
+        if (diff.X == 1 && diff.Y == 0)
+        {
+            rotation = Quaternion.AngleAxis(-90, Vector3.forward);
+        }
+        else if (diff.X == 0 && diff.Y == -1)
+        {
+            rotation = Quaternion.AngleAxis(-180, Vector3.forward);
+        }
+        else if (diff.X == -1 && diff.Y == 0)
+        {
+            rotation = Quaternion.AngleAxis(-270, Vector3.forward);
+        }
+        var arrowGo = (GameObject)Instantiate(this.ArrowPrefab, this.transform.position, rotation);
+        arrowGo.transform.SetParent(this.transform);
+        arrowGo.transform.localPosition += arrowGo.transform.up * 0.5f;
+
+        this.arrows.Add(arrowGo);
+
+        return arrowGo;
     }
 
     #region IPointerClickHandler implementation

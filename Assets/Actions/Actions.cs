@@ -79,6 +79,14 @@ public class GameAction
         return false;
     }
 
+    public void Display(bool display)
+    {
+        foreach (var comp in components)
+        {
+            comp.Display(display);
+        }
+    }
+
     protected virtual void Start()
     {
         this.Started = true;
@@ -103,6 +111,7 @@ public abstract class GameActionComponent
 
     public abstract void Start();
     public abstract void Tick(bool finished);
+    public abstract void Display(bool display);
 }
 
 public class Move : GameActionComponent
@@ -136,11 +145,25 @@ public class Move : GameActionComponent
             this.To.Character = this.owner.Character;
         }
     }
+
+    public override void Display(bool display)
+    {
+        if (display)
+        {
+            this.From.ShowHintMovementTo(this.To);
+        }
+        else
+        {
+            this.From.HideHints();
+        }
+    }
 }
 
 public class Recharge : GameActionComponent
 {
     public readonly int recharge;
+
+    TileBehavior rechargeTile;
 
     public Recharge(GameAction owner, int recharge) 
         : base(owner) 
@@ -154,12 +177,19 @@ public class Recharge : GameActionComponent
 
         character.Stamina += recharge;
 
+        rechargeTile = character.GetTileBhv();
+
         if (character.Stamina > character.StartStamina)
         {
             character.Stamina = character.StartStamina;
         }
     }
     public override void Tick(bool arrived) {}
+
+    public override void Display(bool display)
+    {
+        this.rechargeTile.IsHighlighted = display;
+    }
 }
     
 
@@ -170,6 +200,8 @@ public class Attack : GameActionComponent
 
     public Character TargetHit {get;set;}
 
+    TileBehavior attackedFrom;
+
     public Attack (GameAction owner, AttackComponent attackCmp, TileBehavior[] targets)
         : base (owner)
     {
@@ -179,6 +211,7 @@ public class Attack : GameActionComponent
 
     public override void Start()
     {
+        this.attackedFrom = owner.Character.GetTileBhv();
     }
 
     public override void Tick(bool hit)
@@ -216,8 +249,20 @@ public class Attack : GameActionComponent
 
             if ( this.TargetHit != null)
             {
-                opp.Health -= damage;
+                this.TargetHit.Health -= damage;
             }
+        }
+    }
+
+    public override void Display(bool display)
+    {
+        if (display)
+        {
+            attackedFrom.ShowHintAttackTo(Targets);
+        }
+        else
+        {
+            attackedFrom.HideHints();
         }
     }
 }

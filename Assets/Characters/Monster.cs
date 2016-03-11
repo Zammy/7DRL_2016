@@ -51,7 +51,7 @@ public class Monster : Character
             else
             {
                 Point[] path = LevelMng.Instance.PathFromAtoB(selfPos, playerPos);
-                Debug.LogFormat("Dog trying to walk to player from {0} to {1}", selfPos, playerPos);
+//                Debug.LogFormat("Dog trying to walk to player from {0} to {1}", selfPos, playerPos);
                 Point toGoTo = path[0];
                 ActionExecutor.Instance.EnqueueAction(this, this.actions["Run"], LevelMng.Instance.GetTileBehavior(toGoTo));
             }
