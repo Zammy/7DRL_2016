@@ -37,15 +37,12 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public Text CharacterName;
     public Text ActionName;
     public Text TimeLeft;
-    public Button CancelActionButton;
     public GameObject IsHit;
 
     public Image Background;
     public Color HoverColor;
     //
 
-//    public event Action<GameActionDisplay> Finish;
-    public event Action<GameActionDisplay> Cancel;
     public event Action<GameActionDisplay> MouseHoverIn;
     public event Action<GameActionDisplay> MouseHoverOut;
 
@@ -89,15 +86,7 @@ public class GameActionDisplay : MonoBehaviour, IPointerEnterHandler, IPointerEx
         }
 
         this.TimeLeft.text = GameActionDataExt.GetLengthInSecs( this.gameAction.TimeLeft  ).ToString("F"); 
-
-        bool canCancel = this.GameAction.Character is Player && !this.GameAction.Started;
-        this.CancelActionButton.gameObject.SetActive( canCancel );
 	}
-
-    public void CancelGameAction()
-    {
-        this.Cancel(this);
-    }
 
     #region IPointerEnterHandler implementation
     public void OnPointerEnter(PointerEventData eventData)

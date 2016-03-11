@@ -27,9 +27,21 @@ public class ActionExecutor : MonoBehaviour
     public event Action<GameAction> ActionExecutionStarted;
     public event Action<GameAction> ActionExecutionCompleted;
 
+    public bool IsExecutingActions {get; private set;}
+    public int GameTime {get; private set;}
+    public int TicksPerFrame  {get; set;}
+
     List<GameAction> actions = new List<GameAction>();
 
-    public bool IsExecutingActions {get; private set;}
+    public ActionExecutor()
+    {
+        this.TicksPerFrame = 25;
+    }
+
+    public void ResetGameTime()
+    {
+        this.GameTime = 0;
+    }
 
     public bool EnqueueAction(Character character, GameActionData gameActionData, TileBehavior target)
     {
@@ -53,8 +65,6 @@ public class ActionExecutor : MonoBehaviour
         {
             return false;
         }
-
-        this.RemovePreviousAcitonForCharacterNotStarted(character);
 
         Debug.LogFormat("EnqueueAction {0} will {1}", character.Name, gameActionData.Name);
 
@@ -163,28 +173,16 @@ public class ActionExecutor : MonoBehaviour
         return 0f;
     }
 
-    void RemovePreviousAcitonForCharacterNotStarted(Character character)
-    {
-        for (int i = this.actions.Count - 1; i >= 0; i--)
-        {
-            var action = this.actions[i];
-            if (action.Character == character && !action.Started)
-            {
-                this.ActionExecutorList.RemoveAction(action);
-                this.actions.RemoveAt(i);
-                break;
-            }
-        }
-    }
-
     IEnumerator ExecuteActions()
     {
         bool playerActionFinished = false;
         while(!playerActionFinished)
         {
             var finishedGameActions = new List<GameAction>(this.actions.Count);
-            for (int x = 0; x < 25; x++)
+            for (int x = 0; x < this.TicksPerFrame; x++)
             {
+                this.GameTime++;
+
                 finishedGameActions.Clear();
 
                 for (int i = this.actions.Count - 1; i >= 0; i--)

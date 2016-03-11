@@ -16,15 +16,22 @@ public class ActionExecutorList : MonoBehaviour
     public Text MonsterDescription;
     public StatInt MonsterHealthStat;
     public StatInt MonsterStaminaStat;
+
+    public Text GameTime;
+    public Text GameSpeed;
     //
+
+    void Update()
+    {
+        this.GameTime.text = GameActionDataExt.GetLengthInSecs( ActionExecutor.Instance.GameTime ).ToString("F");
+        this.GameSpeed.text = ActionExecutor.Instance.TicksPerFrame.ToString();
+    }
 
 	public void AddAction(GameAction gameAction)
     {
         var displayGo = Instantiate(this.GameActionDisplayPrefab);
         var display = displayGo.GetComponent<GameActionDisplay>();
         display.GameAction = gameAction;
-//        display.Finish += this.OnGameActionFinished;
-        display.Cancel += this.OnGameActionCanceled;
         display.MouseHoverIn += this.OnMouseHoverIn;
         display.MouseHoverOut += this.OnMouseHoverOut;
 
@@ -43,10 +50,15 @@ public class ActionExecutorList : MonoBehaviour
         this.SortGameActionDisplays();
     }
 
-//    void OnGameActionFinished(GameActionDisplay display)
-//    {
-//        this.RemoveDisplay(display);
-//    }
+    public void IncreaseGameSpeed()
+    {
+        ActionExecutor.Instance.TicksPerFrame++;
+    }
+
+    public void DecreaseGameSpeed()
+    {
+        ActionExecutor.Instance.TicksPerFrame--;
+    }
 
     void OnGameActionCanceled(GameActionDisplay display)
     {
@@ -56,9 +68,8 @@ public class ActionExecutorList : MonoBehaviour
 
     void RemoveDisplay(GameActionDisplay display)
     {
-//        display.Finish -= this.OnGameActionFinished;
-        display.Cancel -= this.OnGameActionCanceled;
-
+        display.MouseHoverIn -= this.OnMouseHoverIn;
+        display.MouseHoverOut -= this.OnMouseHoverOut;
         Destroy(display.gameObject);
     }
 

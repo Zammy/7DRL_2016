@@ -24,6 +24,8 @@ public class Glue : MonoBehaviour
 
 	void Start () 
     {
+        ActionExecutor.Instance.ResetGameTime();
+
         var lvlGen = new BSPGenerator();
         var genOpts = new GenOptions()
         {
