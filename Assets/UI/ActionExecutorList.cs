@@ -10,13 +10,8 @@ public class ActionExecutorList : MonoBehaviour
     public GameObject GameActionDisplayPrefab;
 
     public Transform Queue;
-
-    public GameObject MonsterPanelInfo;
-    public Text MonsterName;
-    public Text MonsterDescription;
-    public StatInt MonsterHealthStat;
-    public StatInt MonsterStaminaStat;
-
+    public MonsterInfo MonsterInfo;
+   
     public Text GameTime;
     public Text GameSpeed;
     //
@@ -104,12 +99,12 @@ public class ActionExecutorList : MonoBehaviour
             var attack = gameAction.GetComponent<Attack>();
             if (attack != null && attack.TargetHit != null)
             {
-                DisplayMonsterInfo( attack.TargetHit as Monster );
+                this.MonsterInfo.ShowMonsterInfo( attack.TargetHit as Monster );
             }
         }
         else
         {
-            DisplayMonsterInfo(gameAction.Character as Monster);
+            this.MonsterInfo.ShowMonsterInfo(gameAction.Character as Monster);
         }
     }
 
@@ -118,16 +113,6 @@ public class ActionExecutorList : MonoBehaviour
         var gameAction = display.GameAction;
         gameAction.Display(false);
 
-        this.MonsterPanelInfo.SetActive(false);
-    }
-
-    void DisplayMonsterInfo(Monster monster)
-    {
-        this.MonsterPanelInfo.SetActive(true);
-        this.MonsterName.text = monster.Name;
-        this.MonsterName.color = monster.GetComponent<LightTarget>().Color;
-        this.MonsterDescription.text = monster.Description;
-        this.MonsterHealthStat.Value = monster.Health;
-        this.MonsterStaminaStat.Value = monster.Stamina;
+        this.MonsterInfo.Hide();
     }
 }

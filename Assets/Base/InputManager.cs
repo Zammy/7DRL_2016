@@ -8,6 +8,7 @@ public class InputManager : MonoBehaviour
     public ActionExecutorList ActionExecutorList;
     public ActionExecutor ActionExecutor;
     public LevelMng LevelMng;
+    public MonsterInfo MonsterInfo;
     //
 
     public Player Player
@@ -111,6 +112,11 @@ public class InputManager : MonoBehaviour
             return;
         }
 
+        if (tileHovered.Character is Monster)
+        {
+            this.MonsterInfo.ShowMonsterInfo(tileHovered.Character as Monster);
+        }
+
         return;
 
         this.ClearHighlightedTiles();
@@ -150,6 +156,8 @@ public class InputManager : MonoBehaviour
         {
             tile.IsPatternHighlighted = false;
         }
+
+        this.MonsterInfo.Hide();
 
         return;
 
