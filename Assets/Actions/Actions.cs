@@ -157,10 +157,41 @@ public class Move : GameActionComponent
     {
         this.owner.Character.transform.position += movePerTick;
 
-        if (arrived)
+        if (!arrived)
+            return;
+
+        if (Displaces && this.To.Character)
         {
-            this.To.Character = this.owner.Character;
+            var displacedChar = this.To.Character;
+
+            Point moveDir = (this.To.Pos - this.From.Pos);
+
+            Point[] options = new Point[4];
+            options[0] = this.To.Pos + moveDir;
+            if (this.To.Pos.Y == this.From.Pos.Y)
+            {
+                options[1] = new Point(this.To.Pos.X, this.To.Pos.Y + 1);
+                options[2] = new Point(this.To.Pos.X, this.To.Pos.Y - 1);
+            }
+            else
+            {
+                options[1] = new Point(this.To.Pos.X + 1, this.To.Pos.Y);
+                options[2] = new Point(this.To.Pos.X - 1, this.To.Pos.Y);
+            }
+            options[3] = this.From.Pos;
+
+            foreach (var option in options)
+            {
+                var tile = LevelMng.Instance.GetTileBehavior(option);
+                if (tile != null && ActionExecutor.Instance.IsTileAvailableForMove(tile))
+                {
+                    tile.Character = displacedChar;
+                    break;
+                }
+            }
         }
+
+        this.To.Character = this.owner.Character;
     }
 
     public override void Display(bool display)

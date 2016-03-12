@@ -145,7 +145,7 @@ public class LevelMng : MonoBehaviour
         System.Action<Point> tryAddTileBehavior = (p) =>
         {
             var tile = GetTileBehavior( p );
-            if (tile != null)
+            if (tile != null && tile.Tile.IsPassable)
             {
                 tiles.Add(tile);
             }

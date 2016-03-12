@@ -179,6 +179,19 @@ public class InputManager : MonoBehaviour
         int range = actionData.Range;
         Point playerPos = this.LevelMng.Player.Pos;
         TileBehavior[] tilesInRange = this.LevelMng.TilesAroundInRange(playerPos, range);
+
+        var move = actionData.GetComponent<MoveComponent>();
+        if (move != null && !move.Displace)
+        {
+            for (int i = tilesInRange.Length - 1; i >= 0; i--)
+            {
+                if (! ActionExecutor.Instance.IsTileAvailableForMove( tilesInRange[i] ))
+                {
+                    tilesInRange[i] = null;
+                }
+            }
+        }
+
         this.HighlightTiles(tilesInRange);
     }
 
@@ -201,9 +214,12 @@ public class InputManager : MonoBehaviour
     {
         foreach (var tile in tilesInRange)
         {
+            if (tile == null)
+                continue;
+
             tile.IsHighlighted = true;
+            this.highlightedTiles.Add(tile);
         }
-        this.highlightedTiles.AddRange(tilesInRange);
     }
 
     IEnumerator RemoveClickedTileAfterDelay()

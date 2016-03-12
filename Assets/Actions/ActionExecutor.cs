@@ -188,6 +188,24 @@ public class ActionExecutor : MonoBehaviour
         }
     }
 
+
+    public bool IsTileAvailableForMove(TileBehavior tile)
+    {
+        foreach(var action in this.actions)
+        {
+            var move = action.GetComponent<Move>();
+            if (move == null)
+                continue;
+
+            if (move.To == tile)
+            {
+                return false;
+            }
+        }
+
+        return tile.Tile.IsPassable;
+    }
+
     IEnumerator ExecuteActions()
     {
         bool playerActionFinished = false;

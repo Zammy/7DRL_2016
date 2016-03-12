@@ -22,7 +22,7 @@ public abstract class AIBehavior : MonoBehaviour
         Point playerPos = LevelMng.Instance.Player.Pos;
         if (attackComp.Pattern == AttackPattern.One)
         {
-            return (Self.Pos - playerPos).Length == range;
+            return (Self.Pos - playerPos).Length <= range;
         }
         else if (attackComp.Pattern == AttackPattern.TwoInARow)
         {
