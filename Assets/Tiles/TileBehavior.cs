@@ -65,6 +65,13 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
                 this.Static.SetActive(false);
 
                 this.Character.LocationChanged();
+
+                if (this.Tile.Type == TileType.End
+                    && value is Player
+                    && LevelMng.Instance.IsRoomClear(this.Tile.Room))
+                {
+                    Debug.Log("LEVEL COMPLETEDED!!!!!");
+                }
             }
             else
             {

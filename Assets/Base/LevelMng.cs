@@ -520,7 +520,7 @@ public class LevelMng : MonoBehaviour
             monster.IsActive = true;
         }
 
-        if (roomMonster[room].Count == 0)
+        if (IsRoomClear(room))
         {
             return;
         }
@@ -537,6 +537,11 @@ public class LevelMng : MonoBehaviour
         {
             shadow.TempImpassable = false;
         }
+    }
+
+    public bool IsRoomClear(Room room)
+    {
+        return roomMonster[room].Count == 0;
     }
 
     #endregion
