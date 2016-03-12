@@ -193,6 +193,13 @@ public class Move : GameActionComponent
         }
 
         this.To.Character = this.Owner.Character;
+
+        if (From.Tile.Type == TileType.ShadowDoor
+            && From.Tile.Room == To.Tile.Room
+            && this.Owner.Character is Player)
+        {
+            LevelMng.Instance.ActivateRoom( To.Tile.Room );
+        }
     }
 
     public override void Display(bool display)

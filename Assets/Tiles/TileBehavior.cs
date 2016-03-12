@@ -34,6 +34,20 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         set;
     }
 
+    public bool TempImpassable
+    {
+        get
+        {
+            return this.Tile.TempImpassable;
+        }
+        set
+        {
+            this.Tile.TempImpassable = value;
+
+            StartCoroutine ( this.Rotate90 (this.Static.transform, !value) );
+        }
+    }
+
     private Character character;
     public Character Character
     {
@@ -184,6 +198,29 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         this.GetComponent<LightTarget>().ShouldBeLit = true;
 
         sprite.color = prevColor;
+    }
+
+    IEnumerator Rotate90(Transform transform, bool open)
+    {
+        yield return new WaitForSeconds(1f);
+
+        const int frames = 30;
+        float change = 90/frames;
+        float angle = -90f;
+        if (!open)
+        {
+            angle = 0;
+            change = -change;
+        }
+
+        var quat = transform.rotation;
+
+        for (int i = 0; i < frames; i++)
+        {
+            angle += change;
+            transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            yield return null;
+        }
     }
 
     #region IPointerClickHandler implementation

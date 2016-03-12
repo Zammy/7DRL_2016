@@ -8,8 +8,13 @@ public class Monster : Character
     public int DetectionRange; //in what range monster detects 
     public string Description;
     public GameObject AIBehaviors;
-
     //
+
+    public bool IsActive
+    {
+        get;
+        set;
+    }
 
     AIBehavior activeBehavior;
 
@@ -27,26 +32,28 @@ public class Monster : Character
 
     public void DecideAndQueueAction()
     {
-//        if (activeBehavior == null || activeBehavior.ShouldDeactivate())
-//        {
-            foreach (var beh in AIBehaviors.GetComponents<AIBehavior>())
-            {
-                if (beh == activeBehavior)
-                {
-                    if (beh.ShouldDeactivate())
-                        continue;
-                    else
-                        break;
-                }
+        if (!this.IsActive)
+        {
+            return;
+        }
 
-                if (beh.ShouldActivate())
-                {
-                    Debug.LogFormat("[{0}]  ({1}) activated", this.Name, beh.GetType().Name);
-                    activeBehavior = beh;
+        foreach (var beh in AIBehaviors.GetComponents<AIBehavior>())
+        {
+            if (beh == activeBehavior)
+            {
+                if (beh.ShouldDeactivate())
+                    continue;
+                else
                     break;
-                }
             }
-//        }
+
+            if (beh.ShouldActivate())
+            {
+                Debug.LogFormat("[{0}]  ({1}) activated", this.Name, beh.GetType().Name);
+                activeBehavior = beh;
+                break;
+            }
+        }
 
         Debug.LogFormat("[{0}]  ({1}) deciding", this.Name, activeBehavior.GetType().Name);
 

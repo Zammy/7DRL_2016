@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
 using UnityEngine;
-using RogueLib;
 
 public class LevelMng : MonoBehaviour
 {
@@ -18,6 +17,7 @@ public class LevelMng : MonoBehaviour
     public GameObject GroundPrefab;
     public GameObject WallPrefab;
     public GameObject EndPrefab;
+    public GameObject ShadowDoorPrefab;
 
     public float TileSize;
 
@@ -25,10 +25,13 @@ public class LevelMng : MonoBehaviour
     public InputManager InputManager;
     //
 
-    private TileBehavior[,] level;
-
     public Player Player { get; set; }
     public List<Character> Characters { get; set; }
+
+    private TileBehavior[,] level;
+
+    private Dictionary<Room, List<Monster>> roomMonster = new Dictionary<Room, List<Monster>>();
+    private Dictionary<Room, List<TileBehavior>> roomShadowDoor = new Dictionary<Room, List<TileBehavior>>();
 
     void Awake()
     {
@@ -47,6 +50,8 @@ public class LevelMng : MonoBehaviour
 
     public void LoadLevel(Dungeon dungeon)
     {
+        roomMonster.Clear();
+        roomShadowDoor.Clear();
         AddTilesTo(dungeon.Tiles, this.Level);
     }
 
@@ -60,11 +65,32 @@ public class LevelMng : MonoBehaviour
         this.level[pos.X, pos.Y].Character = character;
 
         this.Characters.Add(character);
+
+        if (character is Player)
+        {
+            return;
+        }
+
+        var room = this.level[pos.X, pos.Y].Tile.Room;
+        if (!this.roomMonster.ContainsKey(room))
+        {
+            this.roomMonster[room] = new List<Monster>();
+        }
+        this.roomMonster[room].Add(character as Monster);
     }
 
     public void KillCharacter(Character character)
     {
         this.Characters.Remove(character);
+        if (character is Monster)
+        {
+            var room = character.GetTileBhv().Tile.Room;
+            this.roomMonster[ room ].Remove((Monster)character);
+            if (this.roomMonster[ room ].Count == 0)
+            {
+                this.DeactivateRoom(room);
+            }
+        }
         character.GetTileBhv().Character = null;
         Destroy(character.gameObject);
 
@@ -98,14 +124,14 @@ public class LevelMng : MonoBehaviour
                         prefabToUse = this.WallPrefab;
                         break;
                     }
-//                        case TileType.Start:
-//                        {
-//                            prefabToUse = this.StartPrefab;
-//                            break;
-//                        }
                     case TileType.End:
                     {
                         prefabToUse = this.EndPrefab;
+                        break;
+                    }
+                    case TileType.ShadowDoor:
+                    {
+                        prefabToUse = this.ShadowDoorPrefab;
                         break;
                     }
                     default:
@@ -121,6 +147,15 @@ public class LevelMng : MonoBehaviour
                 behavior.HoverIn += this.InputManager.OnTileHoveredIn;
                 behavior.HoverOut += this.InputManager.OnTileHoveredOut;
                 this.level[x, y] = behavior;
+
+                if (tile.Type == TileType.ShadowDoor)
+                {
+                    if (!roomShadowDoor.ContainsKey(tile.Room))
+                    {
+                        roomShadowDoor[tile.Room] = new List<TileBehavior>();
+                    }
+                    this.roomShadowDoor[tile.Room].Add(behavior);
+                }
             }
         }
     }
@@ -304,7 +339,7 @@ public class LevelMng : MonoBehaviour
 
     bool IsPassable(Point p)
     {
-        try 
+        try
         {
             if (this.level[p.X, p.Y] == null)
                 return false;
@@ -316,11 +351,6 @@ public class LevelMng : MonoBehaviour
 
 
         TileBehavior tileBhv = this.GetTileBehavior(p);
-
-//        if (ActionExecutor.Instance.GetActionMovingToTile( tileBhv ) != null)
-//        {
-//            return false;
-//        }
 
         if (tileBhv.Character != null)
         {
@@ -452,7 +482,7 @@ public class LevelMng : MonoBehaviour
                     tilesCache.Add(tileBhv);
                 }
 
-                if (!tileBhv.Tile.IsPassable)
+                if (!tileBhv.Tile.IsVisibleThrough)
                 {
                     break;
                 }
@@ -467,7 +497,6 @@ public class LevelMng : MonoBehaviour
         var from = new Vector2(origin.X, origin.Y);
         RaycastHit2D[] hits = Physics2D.RaycastAll(from, direction, distance, LayerMask.GetMask("Level") );
 
-
         List<TileBehavior> tiles = new List<TileBehavior>(hits.Length);
         foreach (RaycastHit2D hit in hits)
         {
@@ -478,6 +507,36 @@ public class LevelMng : MonoBehaviour
             }
         }
         return tiles;
+    }
+
+    #endregion
+
+    #region Room Activation
+
+    public void ActivateRoom(Room room)
+    {
+        foreach (var monster in roomMonster[room])
+        {
+            monster.IsActive = true;
+        }
+
+        if (roomMonster[room].Count == 0)
+        {
+            return;
+        }
+
+        foreach (var shadow in roomShadowDoor[room])
+        {
+            shadow.TempImpassable = true;
+        }
+    }
+
+    public void DeactivateRoom(Room room)
+    {
+        foreach (var shadow in roomShadowDoor[room])
+        {
+            shadow.TempImpassable = false;
+        }
     }
 
     #endregion

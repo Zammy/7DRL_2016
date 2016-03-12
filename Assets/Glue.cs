@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using RogueLib;
 
 public class Glue : MonoBehaviour 
 {
@@ -38,7 +37,6 @@ public class Glue : MonoBehaviour
             MIN_ROOM_SIDE = 6
         };
 
-
         Dungeon dungeon = lvlGen.GenAndDrawRooms(genOpts);
 
         this.LeveMng.LoadLevel(dungeon);
@@ -65,30 +63,27 @@ public class Glue : MonoBehaviour
         this.InputManager.Player = player;
 
 
-        Room room = dungeon.Rooms[0];
-        Point dogStartPos;
-        while(true)
-        {
-            dogStartPos = room.GetRandomPointInsideRoom(1);
-            if (dogStartPos != dungeon.PlayerStartPos)
-            {
-                break;
-            }
-        }
-        var dogGo = (GameObject) Instantiate(this.DogPrefab);
-        var dog = dogGo.GetComponent<Monster>();
-        this.LeveMng.AddCharacterOnPos(dog as Character, dogStartPos);
+//        Room room = dungeon.Rooms[0];
 
-//
-//        for (int i = 1; i < dungeon.Rooms.Count; i++)
-//        {
-//            Room room = dungeon.Rooms[i];
-//            var dogGo = (GameObject) Instantiate(this.DogPrefab);
-//
-//            Point p = room.GetRandomPointInsideRoom(1);
-//            var dog = dogGo.GetComponent<Monster>();
-//            this.LeveMng.AddCharacterOnPos(dog as Character, p);
-//        }
-//
+//        Point dogStartPos = dungeon.PlayerStartPos;
+//        dogStartPos.Y++;dogStartPos.Y++;dogStartPos.Y++;
+////        while(true)
+////        {
+////            dogStartPos = room.GetRandomPointInsideRoom(1);
+////            if (dogStartPos != dungeon.PlayerStartPos)
+////            {
+////                break;
+////            }
+////        }
+
+        for (int i = 0; i < dungeon.Rooms.Count; i++) 
+        {
+            var room = dungeon.Rooms[i];
+            var dogGo = (GameObject) Instantiate(this.DogPrefab);
+            var dog = dogGo.GetComponent<Monster>();
+            this.LeveMng.AddCharacterOnPos(dog as Character, room.GetRandomPointInsideRoom(2));
+        }
+
+        LevelMng.Instance.ActivateRoom( dungeon.Rooms[0] );
 	}
 }

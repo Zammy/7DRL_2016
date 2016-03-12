@@ -80,7 +80,8 @@ public enum TileType
     Wall,
     Ground,
     Start,
-    End
+    End,
+    ShadowDoor
 }
 
 public class Tile
@@ -92,12 +93,32 @@ public class Tile
 
     public TileType Type;
 
+    public Room Room;
+
     public bool IsPassable
     {
         get
         {
+            if (this.Type == TileType.ShadowDoor)
+                return !this.TempImpassable;
+
             return this.Type != TileType.Wall;
         }
+    }
+
+    public bool IsVisibleThrough
+    {
+        get
+        {
+            return this.Type != TileType.Wall
+                && this.Type != TileType.ShadowDoor;
+        }
+    }
+
+    public bool TempImpassable
+    {
+        get;
+        set;
     }
 }
 

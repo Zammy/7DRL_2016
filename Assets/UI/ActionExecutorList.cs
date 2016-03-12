@@ -47,12 +47,15 @@ public class ActionExecutorList : MonoBehaviour
 
     public void IncreaseGameSpeed()
     {
-        ActionExecutor.Instance.TicksPerFrame++;
+        ActionExecutor.Instance.TicksPerFrame += 5;
     }
 
     public void DecreaseGameSpeed()
     {
-        ActionExecutor.Instance.TicksPerFrame--;
+        if (ActionExecutor.Instance.TicksPerFrame <= 5)
+            return;
+
+        ActionExecutor.Instance.TicksPerFrame -= 5;
     }
 
     void OnGameActionCanceled(GameActionDisplay display)
