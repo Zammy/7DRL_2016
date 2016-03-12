@@ -153,28 +153,42 @@ public class ActionExecutor : MonoBehaviour
         return false;
     }
 
-    public void CharacterCloseTo(TileBehavior target, out Character character, out float howClose)
+    //inclues characteres moving in or out these tiles
+    public List<Character> AllCharactersMovingToOrFromTiles(TileBehavior[] tiles)
     {
-        howClose = 0f;
-        character = null;
+        List<Character> chars = new List<Character>();
 
+        System.Action<Character> tryAdd = (Character c) =>
+        {
+            if (chars.Contains(c))
+                return;
+
+            chars.Add(c);
+        };
+
+        var moves = new List<Move>();
         foreach(var action in this.actions)
         {
             var move = action.GetComponent<Move>();
-            if (move == null)
-                continue;
-
-            if (move.To == target)
+            if (move != null)
             {
-                howClose = (float)action.TimeLeft / (float)action.ActionData.Length;
-                character = action.Character;
-            }
-            if (move.From == target)
-            {
-                howClose = 1f - ((float)action.TimeLeft / (float)action.ActionData.Length);
-                character = action.Character;
+                moves.Add(move);
             }
         }
+
+        foreach (var tile in tiles)
+        {
+            foreach (var move in moves)
+            {
+                if (move.To == tile
+                    || move.From == tile)
+                {
+                    tryAdd(move.Owner.Character);
+                }
+            }
+        }
+
+        return chars;
     }
 
     public void RemoveAllActionsOfCharacter(Character character)

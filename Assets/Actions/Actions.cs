@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class GameAction
 {
@@ -115,11 +116,11 @@ public class GameAction
 
 public abstract class GameActionComponent
 {
-    protected GameAction owner;
+    public readonly GameAction Owner;
 
     public GameActionComponent(GameAction owner)
     {
-        this.owner = owner;
+        this.Owner = owner;
     }
 
     public abstract void Start();
@@ -148,14 +149,14 @@ public class Move : GameActionComponent
     public override void Start()
     {
         var difference = this.To.transform.position - this.From.transform.position;
-        this.movePerTick = difference / (float)this.owner.TimeLeft;
+        this.movePerTick = difference / (float)this.Owner.TimeLeft;
 
         this.From.Character = null;
     }
 
     public override void Tick(bool arrived)
     {
-        this.owner.Character.transform.position += movePerTick;
+        this.Owner.Character.transform.position += movePerTick;
 
         if (!arrived)
             return;
@@ -185,13 +186,13 @@ public class Move : GameActionComponent
                 var tile = LevelMng.Instance.GetTileBehavior(option);
                 if (tile != null && ActionExecutor.Instance.IsTileAvailableForMove(tile))
                 {
-                    tile.Character = displacedChar;
+                    DisplaceCharacterTo(displacedChar, tile);
                     break;
                 }
             }
         }
 
-        this.To.Character = this.owner.Character;
+        this.To.Character = this.Owner.Character;
     }
 
     public override void Display(bool display)
@@ -203,6 +204,28 @@ public class Move : GameActionComponent
         else
         {
             this.From.HideHints();
+        }
+    }
+
+    void DisplaceCharacterTo(Character character, TileBehavior tile)
+    {
+        Point displacement = character.Pos - tile.Pos;
+
+        tile.Character = character;
+
+        if (character.ActionExecuted == null)
+            return;
+
+        var attack = character.ActionExecuted.GetComponent<Attack>();
+        if (attack != null)
+        {
+            List<TileBehavior> newTargets = new List<TileBehavior>();
+            foreach (var target in attack.Targets)
+            {
+                var newTarget = LevelMng.Instance.GetTileBehavior( target.Pos + displacement );
+                newTargets.Add(newTarget);
+            }
+            attack.Targets = newTargets.ToArray();
         }
     }
 }
@@ -221,7 +244,7 @@ public class Recharge : GameActionComponent
 
     public override void Start()
     {
-        Character character = owner.Character;
+        Character character = Owner.Character;
 
         character.Stamina += recharge;
 
@@ -244,7 +267,7 @@ public class Recharge : GameActionComponent
 public class Attack : GameActionComponent
 {
     public readonly int Damage;
-    public readonly TileBehavior[] Targets;
+    public TileBehavior[] Targets;
 
     public List<Character> TargetsHit {get;set;}
 
@@ -261,7 +284,6 @@ public class Attack : GameActionComponent
 
     public override void Start()
     {
-        this.attackedFrom = owner.Character.GetTileBhv();
     }
 
     public override void Tick(bool done)
@@ -271,39 +293,79 @@ public class Attack : GameActionComponent
             return;
         }
 
+        this.attackedFrom = Owner.Character.GetTileBhv();
+
+        List<Character> hit = new List<Character>();
+
+        Action<Character> tryAdd = (Character c) =>
+        {
+            if(!hit.Contains(c))
+                hit.Add(c);
+        };
+
         foreach (var targetTile in Targets)
         {
             targetTile.FlashAttack();
 
-            int damage = this.Damage;
-            Character opp = targetTile.Character;
-            if (opp == null)
+            Character character = targetTile.Character;
+            if (character != null
+                && character != this.Owner.Character)
             {
-                float chance;
-                ActionExecutor.Instance.CharacterCloseTo(targetTile, out opp, out chance);
-                if (opp != null)
-                {
-                    float randomValue = UnityEngine.Random.value;
+                tryAdd(character);
+            }
+        }
 
-//                    chance = chance - 0.25f;
+        List<Character> possibleTargets = ActionExecutor.Instance.AllCharactersMovingToOrFromTiles(this.Targets);
+        possibleTargets.Remove( this.Owner.Character ); //lets not hit ourselves
 
-                    chance = ChanceReductionFromDefend(opp, chance);
+        foreach (var character in possibleTargets)
+        {
+            var move = character.ActionExecuted.GetComponent<Move>();
+            if (Array.IndexOf(Targets, move.To) != -1
+                && Array.IndexOf(Targets, move.From) != -1)
+            {
+                Debug.Log("### Hit because movement between attacked tiles!");
+                tryAdd(character);
+                continue;
+            }
 
-                    Debug.Log("### Chance to hit " + chance);
+            if (move.To == attackedFrom
+                && Owner.ActionData.Range == 1) //melee attack
+            {
+                Debug.Log("### Hit because movement into attacked from tile and melee attack.");
+                tryAdd(character);
+                continue;
+            }
+
+            float chance;
+            if (Array.IndexOf(Targets, move.To) != -1)
+            {
+                chance = (float)move.Owner.TimeLeft / (float)move.Owner.ActionData.Length;
+            }
+            else if (Array.IndexOf(Targets, move.From) != -1)
+            {
+                chance = 1f -((float)move.Owner.TimeLeft / (float)move.Owner.ActionData.Length);
+            }
+            else
+            {
+                throw new UnityException("This should not happen");
+            }
+
+            float randomValue = UnityEngine.Random.value;
+
+            chance = ChanceReductionFromDefend(character, chance);
+
+            Debug.Log("### Chance to hit " + chance);
     
-                    if( randomValue > chance)
-                    {
-                        opp = null;
-                    }
-                }
-            }
-
-            if ( opp != null)
+            if( chance > randomValue)
             {
-                damage = DamageReductionFromDefend(opp, damage);
-                opp.Health -= damage;
-                this.TargetsHit.Add(opp);
+                tryAdd(character);
             }
+        }
+
+        foreach (var victim in hit)
+        {
+            HitCharacter(victim);
         }
     }
 
@@ -317,6 +379,14 @@ public class Attack : GameActionComponent
         {
             attackedFrom.HideHints();
         }
+    }
+
+    void HitCharacter(Character character)
+    {
+        int damage = this.Damage;
+        damage = DamageReductionFromDefend(character, damage);
+        character.Health -= damage;
+        this.TargetsHit.Add(character);
     }
 
     static int DamageReductionFromDefend(Character opp, int damage)
@@ -364,7 +434,7 @@ public class Defend : GameActionComponent
 
     public override void Start()
     {
-        this.defendTile = this.owner.Character.GetTileBhv();
+        this.defendTile = this.Owner.Character.GetTileBhv();
     }
 
     public override void Tick(bool finished)
