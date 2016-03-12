@@ -284,6 +284,7 @@ public class Attack : GameActionComponent
 
     public override void Start()
     {
+        this.attackedFrom = Owner.Character.GetTileBhv();
     }
 
     public override void Tick(bool done)
@@ -338,11 +339,11 @@ public class Attack : GameActionComponent
             }
 
             float chance;
-            if (Array.IndexOf(Targets, move.To) != -1)
+            if (Array.IndexOf(Targets, move.From) != -1)
             {
                 chance = (float)move.Owner.TimeLeft / (float)move.Owner.ActionData.Length;
             }
-            else if (Array.IndexOf(Targets, move.From) != -1)
+            else if (Array.IndexOf(Targets, move.To) != -1)
             {
                 chance = 1f -((float)move.Owner.TimeLeft / (float)move.Owner.ActionData.Length);
             }
