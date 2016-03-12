@@ -25,14 +25,14 @@ public class GameAction
             var moveCmp = component as MoveComponent;
             if (moveCmp != null)
             {
-                this.components.Add(new Move(this, this.Character.GetTileBhv(), targets[0]));
+                this.components.Add(new Move(this, moveCmp, this.Character.GetTileBhv(), targets[0]));
                 continue;
             }
 
             var rechCmp = component as RechargeComponent;
             if (rechCmp != null)
             {
-                this.components.Add(new Recharge(this, rechCmp.Recharge));
+                this.components.Add(new Recharge(this, rechCmp));
                 continue;
             }
 
@@ -40,6 +40,13 @@ public class GameAction
             if (attackCmp != null)
             {
                 this.components.Add( new Attack(this, attackCmp, targets));
+                continue;
+            }
+
+            var defendComp = component as DefendComponent;
+            if (defendComp != null)
+            {
+                this.components.Add( new Defend(this, defendComp));
                 continue;
             }
         }
@@ -93,6 +100,8 @@ public class GameAction
 
     protected virtual void Start()
     {
+        this.Character.ActionExecuted = this;
+
         this.Started = true;
 
         this.Character.Stamina -= this.ActionData.StaminaCost;
@@ -123,11 +132,15 @@ public class Move : GameActionComponent
     public TileBehavior From {get; private set;}
     public TileBehavior To {get; private set;}
 
+    public readonly bool Displaces;
+
     Vector3 movePerTick;
 
-    public Move (GameAction owner, TileBehavior from, TileBehavior to)
+    public Move (GameAction owner, MoveComponent moveComp, TileBehavior from, TileBehavior to)
         : base(owner)
     {
+        this.Displaces = moveComp.Displace;
+
         this.To = to;
         this.From = from;
     }
@@ -169,10 +182,10 @@ public class Recharge : GameActionComponent
 
     TileBehavior rechargeTile;
 
-    public Recharge(GameAction owner, int recharge) 
+    public Recharge(GameAction owner, RechargeComponent rechargeComp) 
         : base(owner) 
     {
-        this.recharge = recharge;
+        this.recharge = rechargeComp.Recharge;
     }
 
     public override void Start()
@@ -233,30 +246,30 @@ public class Attack : GameActionComponent
 
             int damage = this.Damage;
             Character opp = targetTile.Character;
-            if (opp != null)
+            if (opp == null)
             {
-                //TODO implement defend
-//                if (opp.ActionExecuted != null && opp.ActionExecuted is DefendGameAction)
-//                {
-//                    damage = ((DefendGameAction)opp.ActionExecuted).DefendAgainst(this);
-//                }
-            }
-            else
-            {
-                float howClose;
-                ActionExecutor.Instance.CharacterCloseTo(targetTile, out opp, out howClose);
-                float randomValue = UnityEngine.Random.value;
-
-//                Debug.LogFormat("Tries to hit {0} < {1} ", randomValue, howClose - 0.5f);
-                if (opp != null
-                    && randomValue > (howClose - 0.5f))
+                float chance;
+                ActionExecutor.Instance.CharacterCloseTo(targetTile, out opp, out chance);
+                if (opp != null)
                 {
-                    opp = null;
+                    float randomValue = UnityEngine.Random.value;
+
+//                    chance = chance - 0.25f;
+
+                    chance = ChanceReductionFromDefend(opp, chance);
+
+                    Debug.Log("### Chance to hit " + chance);
+    
+                    if( randomValue > chance)
+                    {
+                        opp = null;
+                    }
                 }
             }
 
             if ( opp != null)
             {
+                damage = DamageReductionFromDefend(opp, damage);
                 opp.Health -= damage;
                 this.TargetsHit.Add(opp);
             }
@@ -274,21 +287,69 @@ public class Attack : GameActionComponent
             attackedFrom.HideHints();
         }
     }
+
+    static int DamageReductionFromDefend(Character opp, int damage)
+    {
+        if (opp.ActionExecuted != null)
+        {
+            var defend = opp.ActionExecuted.GetComponent<Defend>();
+            if (defend != null)
+            {
+                var prevDmg = damage;
+                damage = Mathf.Max(0, damage - defend.FlatDamageReduction);
+                if (prevDmg != damage)
+                {
+                    Debug.LogFormat("### Damage reduction by {0}", prevDmg - damage);
+                }
+            }
+        }
+        return damage;
+    }
+
+    static float ChanceReductionFromDefend(Character opp, float chance)
+    {
+        var defend = opp.ActionExecuted.GetComponent<Defend>();
+        if (defend != null)
+        {
+            return defend.ChanceReduction(chance);
+        }
+        return chance;
+    }
 }
 
-//public class DefendGameAction : GameAction
-//{
-//    int flatDmgReduction;
-//
-//    public DefendGameAction(GameActionData actionData, Character character, TileBehavior target)
-//        : base (actionData, character, target)
-//    {
-//        var defendData = actionData as DefendGameActionData;
-//        this.flatDmgReduction = defendData.FlatDamageReduction;
-//    }
-//
-//    public int DefendAgainst(AttackGameAction attackAction)
-//    {
-//        return Mathf.Max(attackAction.Damage - this.flatDmgReduction, 0);
-//    }
-//}
+public class Defend : GameActionComponent
+{
+    public readonly int  FlatDamageReduction;
+    public readonly int  ChanceToHitReduction;
+
+    TileBehavior defendTile;
+
+    public Defend(GameAction owner, DefendComponent defendCmp)
+        : base(owner)
+    {
+        this.FlatDamageReduction = defendCmp.FlatDamageReduction;
+        this.ChanceToHitReduction = defendCmp.ChanceToHitReduction;
+    }
+
+    public override void Start()
+    {
+        this.defendTile = this.owner.Character.GetTileBhv();
+    }
+
+    public override void Tick(bool finished)
+    {
+    }
+
+    public override void Display(bool display)
+    {
+        defendTile.IsHighlighted = display;
+    }
+
+    public float ChanceReduction(float chance)
+    {
+        if (chance < 0f || ChanceToHitReduction == 0)
+            return chance;
+
+        return chance * ((float)ChanceToHitReduction/100f);
+    }
+}

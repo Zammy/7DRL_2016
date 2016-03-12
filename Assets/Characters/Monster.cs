@@ -41,14 +41,14 @@ public class Monster : Character
 
                 if (beh.ShouldActivate())
                 {
-                    Debug.LogFormat("{0} {1} activated", this.Name, beh.GetType().Name);
+                    Debug.LogFormat("[{0}]  ({1}) activated", this.Name, beh.GetType().Name);
                     activeBehavior = beh;
                     break;
                 }
             }
 //        }
 
-        Debug.LogFormat("{0} {1} deciding", this.Name, activeBehavior.GetType().Name);
+        Debug.LogFormat("[{0}]  ({1}) deciding", this.Name, activeBehavior.GetType().Name);
 
         activeBehavior.DecideAndQueueAction();
     }

@@ -99,7 +99,7 @@ public class ActionDisplay : MonoBehaviour
         this.Status.Value = effect.ToString(); 
 
         this.StatusDuration.gameObject.SetActive(true);
-        this.StatusDuration.Value = duration;
+        this.StatusDuration.Value = GameActionDataExt.GetLengthInSecs(duration);
     }
 
 }

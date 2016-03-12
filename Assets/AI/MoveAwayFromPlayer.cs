@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class MoveAwayFromPlayer : AIBehavior 
 {
-
     public int UnderStamina;
     public int ExtraDistance;
 
@@ -21,7 +20,7 @@ public class MoveAwayFromPlayer : AIBehavior
 
     public override bool ShouldDeactivate()
     {
-        return !this.IsInPlayerRange();
+        return !this.IsInPlayerRange() || Self.Stamina > Action.StaminaCost;
     }
 
     public override void DecideAndQueueAction()

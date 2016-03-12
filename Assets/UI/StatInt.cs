@@ -15,7 +15,7 @@ public class StatInt : MonoBehaviour
         {
             if (IsPrecent)
             {
-                this.Text.text = ((double) value / 100d).ToString() + "%";
+                this.Text.text = value.ToString() + "%";
             }
             else
             {
