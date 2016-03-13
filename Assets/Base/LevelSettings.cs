@@ -113,7 +113,6 @@ public class LevelSettings
 
         MonsterChanceSpawn[] levelChances = mobChances[level];
 
-        int roomc = 0;
         foreach(Room room in dungeon.Rooms)
         {
             List<Point> roomPoints = room.GetPointsInside();

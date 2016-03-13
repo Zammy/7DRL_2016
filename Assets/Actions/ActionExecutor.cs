@@ -34,7 +34,7 @@ public class ActionExecutor : MonoBehaviour
 
     public ActionExecutor()
     {
-        this.TicksPerFrame = 25;
+        this.TicksPerFrame = 50;
     }
 
     public void ResetGameTime()
@@ -201,7 +201,6 @@ public class ActionExecutor : MonoBehaviour
         }
     }
 
-
     public bool IsTileAvailableForMove(TileBehavior tile)
     {
         foreach(var action in this.actions)
@@ -216,7 +215,8 @@ public class ActionExecutor : MonoBehaviour
             }
         }
 
-        return tile.Tile.IsPassable;
+        return tile.Tile.IsPassable 
+            && tile.Character == null;
     }
 
     IEnumerator ExecuteActions()

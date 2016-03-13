@@ -362,29 +362,6 @@ public class LevelMng : MonoBehaviour
         return ExtractPath(stepGoal);
     }
 
-    bool IsPassable(Point p)
-    {
-        try
-        {
-            if (this.level[p.X, p.Y] == null)
-                return false;
-        }
-        catch
-        {
-            return false;
-        }
-
-
-        TileBehavior tileBhv = this.GetTileBehavior(p);
-
-        if (tileBhv.Character != null)
-        {
-            return false;
-        }
-
-        return this.level[p.X, p.Y].Tile.IsPassable;
-    }
-
     Step GetLowestScoreFromList(List<Step> steps, Point goal)
     {
         int minScore = int.MaxValue;
@@ -421,12 +398,16 @@ public class LevelMng : MonoBehaviour
                 };
             }
 
-            if (!this.IsPassable(pos))
+            var tile = GetTileBehavior(pos);
+            if (tile == null)
             {
                 return null;
             }
 
-            //TODO add check if is movable rather than passable
+            if (!ActionExecutor.Instance.IsTileAvailableForMove(tile))
+            {
+                return null;
+            }
 
             return new Step()
             {
