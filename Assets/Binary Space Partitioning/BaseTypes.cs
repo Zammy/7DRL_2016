@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class GenOptions
 {
-    public int Seed = 1;
-
     public int DUN_WIDTH = 100;
     public int DUN_HEIGHT= 100;
 
@@ -18,6 +16,8 @@ public class Dungeon
     public Tile[,] Tiles;
     public Point PlayerStartPos;
     public List<Room> Rooms;
+
+    public Dictionary<Point, MonsterType> monsters = new Dictionary<Point, MonsterType>();
 }
 
 public class BinaryNode
@@ -89,13 +89,13 @@ public class Room
     public int Width;
     public int Height;
 
-    public bool IsInRoom(Point point)
-    {
-        return point.X >= this.GlobalPos.X && 
-            point.Y >= this.GlobalPos.Y && 
-            point.X <= this.GlobalPos.X + this.Width &&
-            point.Y <= this.GlobalPos.Y + this.Height;
-    }
+//    public bool IsInRoom(Point point)
+//    {
+//        return point.X >= this.GlobalPos.X && 
+//            point.Y >= this.GlobalPos.Y && 
+//            point.X <= this.GlobalPos.X + this.Width &&
+//            point.Y <= this.GlobalPos.Y + this.Height;
+//    }
 
     public Point GetRandomPointInsideRoom(int padding = 0)
     {
@@ -106,6 +106,25 @@ public class Room
     public Point GetCenter()
     {
         return new Point( this.GlobalPos.X + this.Width/2, this.GlobalPos.Y + this.Height/2 );
+    }
+
+    public List<Point> GetPointsInside()
+    {
+        List<Point> points = new List<Point>();
+
+        for (int x = 1; x < this.Width-1; x++)
+        {
+            for (int y = 1; y < this.Height-1; y++)
+            {
+                Point p = GlobalPos;
+                p.X += x;
+                p.Y += y;
+
+                points.Add(p);
+            }
+        }
+
+        return points;
     }
 }
 

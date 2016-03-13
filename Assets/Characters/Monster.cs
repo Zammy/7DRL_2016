@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public class Monster : Character 
 {
     //Set through Unity
-    public int DetectionRange; //in what range monster detects 
     public string Description;
     public GameObject AIBehaviors;
     //

@@ -19,6 +19,9 @@ public class LevelMng : MonoBehaviour
     public GameObject EndPrefab;
     public GameObject ShadowDoorPrefab;
 
+    public GameObject FeralDogPrefab;
+    public GameObject RottingCorpsePrefab;
+
     public float TileSize;
 
     public Transform Level;
@@ -29,13 +32,19 @@ public class LevelMng : MonoBehaviour
     public List<Character> Characters { get; set; }
 
     private TileBehavior[,] level;
-
+    private Dictionary<MonsterType, GameObject> monsterPrefabs;
     private Dictionary<Room, List<Monster>> roomMonster = new Dictionary<Room, List<Monster>>();
     private Dictionary<Room, List<TileBehavior>> roomShadowDoor = new Dictionary<Room, List<TileBehavior>>();
 
     void Awake()
     {
         _instance = this;
+
+        this.monsterPrefabs = new Dictionary<MonsterType, GameObject>()
+        {
+            { MonsterType.FeralDog, this.FeralDogPrefab },
+            { MonsterType.RottingCorpse, this.RottingCorpsePrefab }
+        };
     }
 
     void Start()
@@ -53,6 +62,7 @@ public class LevelMng : MonoBehaviour
         roomMonster.Clear();
         roomShadowDoor.Clear();
         AddTilesTo(dungeon.Tiles, this.Level);
+        AddMonsters(dungeon.monsters);
     }
 
     public void AddCharacterOnPos(Character character, Point pos)
@@ -157,6 +167,21 @@ public class LevelMng : MonoBehaviour
                     this.roomShadowDoor[tile.Room].Add(behavior);
                 }
             }
+        }
+    }
+
+    void AddMonsters(Dictionary<Point, MonsterType> monsters )
+    {
+        foreach (var kvp in monsters)
+        {
+            Point pos = kvp.Key;
+            MonsterType mobType = kvp.Value;
+            GameObject prefab = this.monsterPrefabs[mobType];
+            
+            var go = (GameObject)Instantiate(prefab);
+            var monster = go.GetComponent<Monster>();
+
+            this.AddCharacterOnPos(monster as Character, pos);
         }
     }
 
@@ -400,6 +425,8 @@ public class LevelMng : MonoBehaviour
             {
                 return null;
             }
+
+            //TODO add check if is movable rather than passable
 
             return new Step()
             {

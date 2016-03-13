@@ -70,7 +70,9 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
                     && value is Player
                     && LevelMng.Instance.IsRoomClear(this.Tile.Room))
                 {
+                    LevelSettings.FinishedLevel();
                     Debug.Log("LEVEL COMPLETEDED!!!!!");
+                    //TODO add some screen for finished level
                 }
             }
             else

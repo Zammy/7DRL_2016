@@ -16,11 +16,9 @@ public class BSPGenerator
     {
     }
 
-    public Dungeon GenAndDrawRooms(GenOptions opts)
+    public Dungeon GenDungeon(GenOptions opts)
     {
         this.opts = opts;
-
-        Random.seed = opts.Seed;
 
         this.rooms.Clear();
         this.corridors.Clear();
