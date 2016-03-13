@@ -31,6 +31,7 @@ public class MoveToPlayer : AIBehavior
     {
         Point[] path = LevelMng.Instance.PathFromAtoB(Self.Pos, LevelMng.Instance.Player.Pos);
         Point toGoTo = path[0];
+        Debug.Log("Move to " + path[0]);
         ActionExecutor.Instance.EnqueueAction(Self, this.Action, LevelMng.Instance.GetTileBehavior(toGoTo));
     }
 }

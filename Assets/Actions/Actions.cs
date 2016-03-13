@@ -377,15 +377,11 @@ public class Attack : GameActionComponent
         }
     }
 
-    public override void Display(bool display)
-    {
-        if (display)
+    public override void Display(bool display)  
+    {      
+        foreach (var target in Targets)
         {
-            attackedFrom.ShowHintAttackTo(Targets);
-        }
-        else
-        {
-            attackedFrom.HideHints();
+            target.IsPatternHighlighted = display;
         }
     }
 

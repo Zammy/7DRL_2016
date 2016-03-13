@@ -26,7 +26,7 @@ public abstract class AIBehavior : MonoBehaviour
         }
         else if (attackComp.Pattern == AttackPattern.TwoInARow)
         {
-            return (Self.Pos - playerPos).Length == 2
+            return (Self.Pos - playerPos).Length <= 2
                 && ((Self.Pos.X == playerPos.X) || (Self.Pos.Y == playerPos.Y));
         }
 

@@ -133,16 +133,16 @@ public class TileBehavior : MonoBehaviour, IPointerClickHandler, IPointerEnterHa
         arrowGo.GetComponent<SpriteRenderer>().color = color;
     }
 
-    public void ShowHintAttackTo(TileBehavior[] targets)
-    {
-        foreach (var target in targets)
-        {
-            var arrowGo = SpawnArrowTo( target );
-            var color = Color.red;
-            color.a = 0.75f;
-            arrowGo.GetComponent<SpriteRenderer>().color = color;
-        }
-    }
+//    public void ShowHintAttackTo(TileBehavior[] targets)
+//    {
+//        foreach (var target in targets)
+//        {
+//            var arrowGo = SpawnArrowTo( target );
+//            var color = Color.red;
+//            color.a = 0.75f;
+//            arrowGo.GetComponent<SpriteRenderer>().color = color;
+//        }
+//    }
 
     public void HideHints()
     {
